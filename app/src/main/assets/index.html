@@ -2061,54 +2061,38 @@ window.saveAdmin = async function() {
         };
 
         document.addEventListener('DOMContentLoaded', async () => { try { window.init(); } catch (e) { window.showNotice("Init Error"); } });
-    </script>
-
     <!-- ===================================================================== -->
-    <!-- PASTE THIS ENTIRE SCRIPT BLOCK TO SECURELY LOAD GOOGLE MAPS         -->
+    <!--    FINAL, SECURE SCRIPT FOR LOADING GOOGLE MAPS                   -->
     <!-- ===================================================================== -->
     <script>
-        function loadGoogleMapsAPI() {
-            // IMPORTANT: Replace this placeholder with your NEW, SECURE API key.
-            const apiKey = AIzaSyDXDln_OQqQpcY8sLUXGdTXcj8yAGBHnMM; 
-
-            if (!apiKey || apiKey === "PASTE_YOUR_NEW_API_KEY_2_HERE") {
-                console.error("Maps API Key is missing.");
-                // Optionally, show an error message to the user on the screen.
-                // const mapElement = document.getElementById('map'); // Assuming your map div has id="map"
-                // if(mapElement) mapElement.innerHTML = 'Map service is currently unavailable.';
+        // This function will be called by the native Android app (from MainActivity.java)
+        // It receives the key securely.
+        window.setGoogleMapsKey = (apiKey) => {
+            if (!apiKey) {
+                console.error("Did not receive a valid API key from the native app.");
                 return;
             }
+            loadGoogleMapsAPI(apiKey);
+        };
 
-            // This function will be called by Google's script once it loads.
+        // This function loads the Google Maps script, but only after it has a key.
+        function loadGoogleMapsAPI(apiKey) {
+            // This function will be called by Google's script once it's loaded.
             window.initMap = () => {
                 // --- YOUR MAP INITIALIZATION CODE GOES HERE ---
-                // You need to find your code that looks like `new google.maps.Map(...)`
-                // and move it inside this function. This is a critical step.
-                // If you can't find it, you may need to recreate it. For example:
-                /*
-                const mapDiv = document.getElementById('map');
-                if (mapDiv) {
-                    const map = new google.maps.Map(mapDiv, {
-                        center: { lat: -34.397, lng: 150.644 },
-                        zoom: 8,
-                    });
-                }
-                */
+                // Move your code like `new google.maps.Map(...)` inside this function.
                 console.log("Google Maps API has loaded and initMap has been called.");
             };
 
-            // This creates the <script> tag and adds it to the page.
+            // Create and inject the script tag with the secure key.
             const script = document.createElement('script');
             script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
             script.async = true;
             document.head.appendChild(script);
         }
-
-        // Start the process as soon as the page is ready.
-        loadGoogleMapsAPI();
     </script>
     <!-- ===================================================================== -->
-
+    
 
 </body>
 </body>

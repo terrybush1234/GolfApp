@@ -1,22 +1,14 @@
-package com.golf.app;
+package com.Golf.App;
 
 import android.os.Bundle;
 import androidx.core.splashscreen.SplashScreen;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
-    private long startTime;
-
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        startTime = System.currentTimeMillis();
-
-        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-
-        splashScreen.setKeepOnScreenCondition(() -> {
-            long currentTime = System.currentTimeMillis();
-            return (currentTime - startTime) < 2500;
-        });
+    public void onStart() {
+        super.onStart();
+        // Pass the key to the webview
+        getBridge().getWebView().evaluateJavascript("window.setGoogleMapsKey('" + BuildConfig.MAPS_API_KEY + "')", null);
     }
 }
