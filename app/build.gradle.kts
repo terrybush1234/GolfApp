@@ -12,7 +12,7 @@ android {
         applicationId = "com.Golf.App"
         minSdk = 24
         targetSdk = 35
-        versionCode = 29
+        versionCode = 30
         versionName = "3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
