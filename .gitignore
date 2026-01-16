@@ -1,0 +1,42 @@
+# IDE files
+.idea/
+*.iml
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Build and temporary files
+build/
+dist/
+www/
+.tmp/
+.DS_Store*.log
+Thumbs.db
+
+# Node dependencies
+node_modules/
+
+# Android files
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/build/
+android/capacitor-android/build/
+android/local.properties
+android/app/google-services.json
+android/.gradle/
+android/captures/
+android/.idea/
+*.jks
+*.keystore
+keystore.properties
+
+# iOS files
+ios/build/
+ios/App/Pods/
+ios/App/App.xcworkspace
+
+# Mac files
+*.swp

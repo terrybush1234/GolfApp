@@ -1,0 +1,6 @@
+{
+  "appId": "com.golf.app",
+  "appName": "Golf App",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Golf App</string>
+    <string name="title_activity_main">Golf App</string>
+    <string name="package_name">com.golf.app</string>
+    <string name="custom_url_scheme">com.golf.app</string>
+</resources>

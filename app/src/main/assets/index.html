@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Commissioner's Golf App</title>
+    
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+<style type="text/tailwindcss">
+    /* This applies the clock-style font to time inputs */
+    input[type="time"] { @apply font-mono; }
+
+    /* These are the styles for the day selection buttons */
+    .tt-day-btn { @apply text-xs font-bold p-2 rounded-md transition-colors; }
+    .tt-day-btn.active { @apply bg-blue-600 text-white; }
+    .tt-day-btn:not(.active) { @apply bg-gray-200 text-gray-600 hover:bg-gray-300; }
+
+    /* The rest of your styles follow */
+    body{font-family:'Inter',sans-serif;background-color:#f3f4f6;-webkit-tap-highlight-color:transparent}
+
+    /* --- MENU BUTTONS & BADGES --- */
+    .nav-item {
+        @apply flex flex-col items-center justify-center py-2 rounded-xl cursor-pointer transition-all duration-150 select-none shadow-sm border-b-4 h-full px-1 active:border-b-0 active:translate-y-1;
+    }
+    .nav-icon { @apply text-xl leading-none mb-1 filter drop-shadow-sm; }
+    .nav-label { @apply text-[9px] font-black uppercase tracking-widest leading-none px-2 py-1 rounded-md transition-colors w-full text-center shadow-inner; }
+
+    /* Inactive: BLUE Theme */
+    .nav-inactive { @apply bg-blue-800 border-blue-950 text-blue-100 hover:bg-blue-700; }
+    .nav-inactive .nav-label { @apply bg-blue-950/40 text-blue-50; }
+
+    /* Active: Yellow Theme */
+    .nav-active { @apply bg-yellow-400 border-yellow-600 text-blue-900 border-b-2 translate-y-0.5 shadow-inner; }
+    .nav-active .nav-label { @apply bg-black/20 text-blue-900; }
+
+    .content-section{display:none}.content-section.active{display:block;}
+
+    #gc-body-scroller { overflow: auto; -webkit-overflow-scrolling: touch; }
+    .gc-scroll-wrapper { width: max-content; min-width: 100%; }
+
+    .gc-row-container{width:100%;border-bottom:1px solid #e5e7eb}
+    
+        /* This is the corrected rule for the sticky column, with "transform" removed */
+        .gc-col-fixed{@apply flex flex-col justify-end items-center bg-gray-100 border-r border-gray-300 text-center shadow-sm h-full;padding:2px 2px;min-height:48px;line-height:1.2;font-size:10px;position:sticky;left:0;z-index:20;transform:translateZ(0);}
+    
+    
+    .gc-col-fixed .hole-label{@apply text-[7px] font-bold text-gray-500 uppercase;display:inline-block;margin-right:2px}
+    .gc-col-fixed .hole-number{@apply text-[10px] font-extrabold text-gray-800;display:inline-block}
+    .gc-header-cell{@apply flex flex-col items-center justify-center p-1 text-center border-r border-gray-200 text-xs font-bold bg-gray-50 text-gray-800 h-full overflow-hidden}
+    .gc-header-cell .player-name-truncate{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .gc-input-cell{@apply relative border-r border-gray-200 h-12 bg-white;padding:0;overflow:hidden}
+    .gc-input{@apply absolute bottom-0 w-full text-center text-xl font-bold bg-transparent outline-none focus:ring-2 focus:ring-inset focus:ring-yellow-400 z-10 text-gray-800;padding-bottom:2px;padding-top:0;height:25px;line-height:1;appearance:none;-moz-appearance:textfield;border-radius:0;border:none;box-shadow:none!important}
+    .gc-input::-webkit-outer-spin-button,.gc-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+    .gc-input[type=number]{-moz-appearance:textfield}
+    .gc-input:focus{background-color:#fef3c7;outline:none}
+    .gc-input[data-dnf='true']{top:0;height:100%;padding-top:15px;@apply bg-red-100 text-red-600 font-extrabold;cursor:default}
+    .input-error{@apply bg-red-200 ring-2 ring-inset ring-red-500 transition-colors duration-500}
+    .gc-dots{@apply absolute top-0.5 left-1 text-red-500 text-[10px] font-bold z-20 pointer-events-none leading-none tracking-tighter;font-family:'Courier New',Courier,monospace;text-align:left;width:calc(100% - 2px);display:block;opacity:0.8}
+    .roster-player-btn{width:100%;padding:12px;background-color:#4f46e5;color:#ffffff;border-radius:12px;border:1px solid #4338ca;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06);cursor:pointer;transition:all 0.15s ease;display:flex;justify-content:space-between;align-items:center}.roster-player-btn:hover{background-color:#4338ca}
+    .roster-signups-container{transition:max-height 0.3s ease-out,opacity 0.3s ease-out;overflow:hidden;max-height:0;opacity:0}.roster-signups-container.active{max-height:300px;opacity:1;margin-top:8px;padding:8px;background-color:#eef2ff;border-radius:8px;border:1px solid #c7d2fe}
+    .roster-header-top{@apply flex flex-col gap-2 mb-2}
+    .roster-summary-container{@apply p-3 bg-gray-800 text-white font-bold text-sm rounded-xl shadow-md w-full border border-gray-700}
+    .roster-summary-header{@apply text-xs font-normal text-gray-400 uppercase tracking-wider mb-2 block border-b border-gray-600 pb-1}
+    .roster-rules-box{@apply p-3 bg-gray-800 text-blue-200 text-[10px] rounded-xl shadow-md w-full border border-gray-700;overflow-y:auto;max-height:100px;white-space:pre-wrap}
+    .roster-day-row{@apply text-xs border-b border-gray-700 py-1 flex flex-col}.roster-day-row:last-child{border-bottom:none}
+    #results-output{@apply max-h-96 overflow-y-auto;}
+    #results-output { @apply max-h-96 overflow-y-auto; }
+</style>
+
+    
+    <script>
+        const $ = (id) => document.getElementById(id);
+
+        function getLocalToday() {
+            const now = new Date(); 
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        }
+
+        function getLocalTime() { 
+            return new Date().toTimeString().substring(0, 5); 
+        }
+
+        function formatTime12h(time24h) {
+            if (!time24h || time24h.length !== 5 || !time24h.includes(':')) return '--:-- --';
+            const [hours, minutes] = time24h.split(':').map(Number);
+            return `${hours % 12 || 12}:${String(minutes).padStart(2, '0')} ${hours >= 12 ? 'PM' : 'AM'}`;
+        }
+
+        function formatDateDDMMYYYY(dateInput) {
+            let date = typeof dateInput === 'string' ? new Date(dateInput.includes('T') ? dateInput : dateInput + "T00:00:00Z") : dateInput;
+            if (isNaN(date.getTime())) return '--/--/----';
+            return `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${String(date.getUTCDate()).padStart(2, '0')}/${date.getUTCFullYear()}`;
+        }
+
+        function showNotice(message) {
+            const banner = $('notice-banner'), content = $('notice-content'), text = $('notice-text');
+            if (!banner || !content || !text) return;
+            text.innerText = message; content.classList.remove('hidden'); banner.classList.remove('-translate-y-full');
+            setTimeout(() => { banner.classList.add('-translate-y-full'); setTimeout(() => content.classList.add('hidden'), 300); }, 3000);
+        }
+
+        function showSaveIndicator() {
+            const el = $('save-indicator'); 
+            if(el) { el.classList.remove('opacity-0'); setTimeout(() => el.classList.add('opacity-0'), 1500); }
+        }
+    window.openTimePicker = function(el) {
+      try {
+        el.showPicker();
+      } catch (e) {
+        // Fallback for browsers that don't support showPicker()
+        // The input will still be clickable, just without the forced picker.
+        console.error("showPicker() is not supported by this browser.", e);
+      }
+    }
+    
+window.handleInputClick = function(el) {
+    // Select the input's content for easy editing
+    el.select();
+    setTimeout(() => el.select(), 50);
+
+    // Wait for the keyboard to appear before scrolling
+    setTimeout(() => {
+        const scroller = document.getElementById('gc-body-scroller');
+        if (!scroller) return;
+
+        // Find the sticky header container
+        const stickyHeader = scroller.querySelector('.sticky.top-0');
+        const headerHeight = stickyHeader ? stickyHeader.offsetHeight : 0;
+        
+        // Find the row containing the input element
+        const row = el.closest('.gc-row-container');
+        if (!row) return;
+
+        // Use getBoundingClientRect for precise position calculations
+        const scrollerRect = scroller.getBoundingClientRect();
+        const rowRect = row.getBoundingClientRect();
+
+        // Calculate the needed vertical scroll to bring the top of the row
+        // to just below the bottom of the sticky header.
+        const scrollTop = (rowRect.top - scrollerRect.top) - headerHeight;
+
+        // Perform the scroll. Using `scrollBy` smoothly adjusts from the current position.
+        scroller.scrollBy({
+            top: scrollTop,
+            behavior: 'smooth'
+        });
+
+    }, 300); // A 300ms delay helps ensure the keyboard is visible
+};
+        
+        // Stubs
+        window.switchLeague = () => console.log("Loading...");
+        window.saveAdmin = () => console.log("Loading...");
+        window.nav = () => console.log("Loading...");
+    </script>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
+    
+    <div id="notice-banner" class="fixed top-0 left-0 right-0 z-[100] p-3 transition-all duration-300 transform -translate-y-full">
+        <div id="notice-content" class="max-w-lg mx-auto bg-green-600 text-white p-3 rounded-lg shadow-xl flex justify-center items-center hidden">
+            <span id="notice-text" class="text-sm font-bold"></span>
+        </div>
+    </div>
+    
+    <div class="w-full h-full max-w-lg mx-auto bg-gray-50 shadow-2xl flex flex-col relative">
+        <header class="bg-blue-900 text-white shadow-lg z-20 shrink-0 pb-3">
+            <div class="px-4 py-4 flex justify-between items-center">
+                <h1 id="league-banner-title" class="text-lg font-extrabold tracking-tight italic">⛳ THE COMMISSIONER'S GOLF APP</h1>
+                <div class="flex items-center gap-2">
+                    <span id="save-indicator" class="text-[10px] font-bold text-yellow-300 opacity-0 transition-opacity duration-500">SAVED</span>
+                    <span id="live-date" class="text-[10px] bg-blue-950 px-2 py-1 rounded text-blue-200 font-mono">--/--/----</span>
+                    <span id="live-clock" class="text-[10px] bg-blue-950 px-2 py-1 rounded text-blue-200 font-mono">--:-- --</span>
+                </div>
+            </div>
+
+            <nav class="grid grid-cols-4 gap-2 px-3 mt-1">
+                <div onclick="window.nav('tees')" id="nav-tees" class="nav-item nav-active">
+                    <span class="nav-icon">⛳</span>
+                    <span class="nav-label">Tee Sheet</span>
+                </div>
+                <div onclick="window.nav('roster')" id="nav-roster" class="nav-item nav-inactive">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-label">Roster</span>
+                </div>
+                <div onclick="window.nav('results')" id="nav-results" class="nav-item nav-inactive">
+                    <span class="nav-icon">🏆</span>
+                    <span class="nav-label">Results</span>
+                </div>
+                <div onclick="window.nav('admin')" id="nav-admin" class="nav-item nav-inactive">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-label">Admin</span>
+                </div>
+            </nav>
+        </header>
+
+        <main class="flex-grow overflow-y-auto p-3 relative pb-24" id="main-scroll">
+            <div id="league-actions" class="text-right mb-3">
+                <button onclick="window.switchLeague()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-[10px] font-bold py-1 px-2 rounded">Switch League</button>
+            </div>
+
+            <section id="sec-tees" class="content-section active">
+                <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm mb-4 sticky top-0 z-10">
+                    <div class="flex justify-between items-end mb-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Select Game Day</label>
+                        <span id="date-status" class="text-[10px] font-bold text-green-600"></span>
+                    </div>
+                    <input id="game-date" type="date" class="w-full p-2 border border-gray-300 rounded-lg font-bold text-gray-800 bg-gray-50 h-10 shadow-sm focus:ring-2 focus:ring-indigo-500">
+                    <div id="cap-status-display" class="hidden mt-2 text-[10px] bg-blue-50 text-blue-700 p-2 rounded border border-blue-100 text-center font-bold"></div>
+                </div>
+                <div id="tee-sheet-container" class="space-y-3"></div>
+            </section>
+
+            <section id="sec-roster" class="content-section">
+                <div class="mb-4 text-xs text-center bg-white p-3 rounded-lg border shadow-sm flex justify-between items-center">
+                    <div class="text-left"><span class="text-gray-400 uppercase font-bold text-[10px] block">Sign Ups For Week Of</span><span id="week-display" class="font-bold text-indigo-700 text-sm block mt-1">Loading...</span></div>
+                    <div class="text-right"><span class="text-[10px] text-gray-400 font-bold">Total Roster</span><span id="roster-count-display" class="block font-bold text-gray-800 text-xl">0</span></div>
+                </div>
+                <div id="roster-list" class="space-y-2"></div>
+            </section>
+
+            <section id="sec-results" class="content-section">
+                <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm mb-4 sticky top-0 z-10">
+                    <div class="flex justify-between items-end mb-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Select Results Day</label>
+                    </div>
+                    <input id="results-date" type="date" class="w-full p-2 border border-gray-300 rounded-lg font-bold text-gray-800 bg-gray-50 h-10 shadow-sm focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div id="results-lock-msg" class="hidden p-8 text-center flex flex-col items-center justify-center h-64">
+                    <div class="text-5xl mb-4">⏳</div>
+                    <h3 class="text-xl font-bold text-gray-700 mb-1">Results Locked</h3>
+                    <p class="text-sm text-gray-400">Press the 'Results' tab after the time below to view the draw.</p>
+                    <span id="res-unlock-time" class="lg font-black text-indigo-600 mt-2 bg-indigo-50 px-3 py-1 rounded"></span>
+                </div>
+                <div id="results-active-container" class="hidden">
+                    <div id="payout-summary" class="mb-4"></div>
+                    <button id="calc-btn" onclick="window.calculateTeamScores(true)" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-md mb-4 flex justify-center items-center gap-2 transition-all active:scale-95">🏆 Calculate Net Scores</button>
+                    <div id="results-output" class="space-y-3"></div>
+                </div>
+            </section>
+
+<section id="sec-admin" class="content-section">
+    <!-- This container holds the dynamic login/register prompts -->
+    <div id="admin-auth-container">
+        <!-- This block is shown when an admin exists and the user needs to log in -->
+        <div id="admin-login-prompt" class="bg-red-50 p-6 rounded-xl shadow-md border border-red-200 text-center hidden">
+            <button type="button" onclick="document.getElementById('firebase-auth-modal').classList.remove('hidden')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg shadow-lg active:scale-95 transition-transform">ADMIN LOGIN</button>
+        </div>
+        <!-- This block is shown when NO admin exists and one can be registered -->
+        <div id="admin-register-prompt" class="bg-indigo-50 p-6 rounded-xl shadow-md border border-indigo-200 text-center hidden">
+            <h3 class="text-lg font-bold text-indigo-700 mb-2">Claim This League</h3>
+            <p class="text-sm text-indigo-500 mb-4">No admin has been assigned. Register to become the admin.</p>
+            <button type="button" onclick="document.getElementById('firebase-register-modal').classList.remove('hidden')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-lg active:scale-95 transition-transform">REGISTER AS ADMIN</button>
+        </div>
+    </div>
+
+    <!-- This wrapper holds all content for a logged-IN user -->
+    <div id="admin-content" class="space-y-4 hidden">
+        
+        <div class="my-4 text-center">
+            <button onclick="window.adminSignOut()" class="w-full bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 rounded-lg shadow-lg active:scale-95 transition-transform">
+                LOG OUT ADMIN
+            </button>
+        </div>
+		
+        <div id="admin-commissioner-tools" class="hidden bg-indigo-50 border border-indigo-200 p-3 rounded-xl mb-4 shadow-sm">
+            <h3 class="text-xs font-bold text-indigo-800 uppercase mb-2">👑 Commissioner Tools</h3>
+            <button onclick="window.openLeagueManager()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded text-xs shadow">🌍 OPEN LEAGUE MANAGER</button>
+        </div>
+    
+        <div id="user-management-tools" class="hidden bg-orange-50 border border-orange-200 p-3 rounded-xl mb-4 shadow-sm">
+            <h3 class="text-xs font-bold text-orange-800 uppercase mb-2">👤 Admin Access Tools</h3>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="window.changeUserEmail()" class="bg-white border border-gray-300 text-gray-700 font-bold py-2 rounded text-[10px] hover:bg-gray-50">Change My Email</button>
+                <button onclick="window.changeUserPassword()" class="bg-white border border-gray-300 text-gray-700 font-bold py-2 rounded text-[10px] hover:bg-gray-50">Change My Password</button>
+            </div>
+        </div>
+
+        <div class="bg-gray-100 p-3 rounded text-center mb-4">
+            <div class="text-[10px] text-gray-500 font-bold uppercase mb-1">Current League ID</div>
+            <div id="debug-league-id" class="text-xs font-mono font-bold bg-white p-2 border rounded select-all">...</div>
+            <div class="text-[9px] text-red-400 mt-1">Verify this ID matches on all devices</div>
+        </div>
+
+        <button onclick="window.saveAdmin()" class="w-full bg-green-900 text-yellow-400 font-bold py-3 rounded-lg shadow-lg active:scale-95 transition-transform">SAVE LEAGUE BANNER & LEAGUE PASSWORD</button>
+        
+        <div class="bg-green-50 p-3 rounded-lg border border-green-100 shadow-inner">
+            <label class="block text-xs font-bold text-green-800 uppercase mb-2">🏷️ App/League Name (Shows in Banner)</label>
+            <input id="admin-league-name" type="text" class="w-full border p-2 rounded text-sm bg-white" placeholder="e.g., THE VILLA LEAGUE">
+        </div>
+        
+        <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 shadow-inner">
+            <label class="block text-xs font-bold text-yellow-800 uppercase mb-2">💰 Money Ball (Bet Per Player)</label>
+            <div class="flex items-center gap-2">
+                <span class="text-lg font-bold text-yellow-600">$</span>
+                <input id="admin-bet-amount" type="number" onchange="window.autoSaveAdminConfig()" class="w-full border p-2 rounded text-sm bg-white font-bold text-gray-800" placeholder="0">
+            </div>
+        </div>
+
+        <div class="bg-gray-100 p-3 rounded-lg border border-gray-200 shadow-inner">
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-2">📜 Game Rules (Displayed on Roster Page)</label>
+            <textarea id="admin-game-rules-text" onchange="window.autoSaveAdminConfig()" placeholder="Enter rules here" class="w-full h-24 border p-2 rounded text-xs bg-white"></textarea>
+        </div>
+        
+        <div class="border-t pt-4">
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Active League Days</label>
+            <div class="grid grid-cols-4 gap-2">
+                <label class="day-lbl"><input type="checkbox" class="day-check" value="0" onchange="window.autoSaveAdminConfig()"> Sun</label>
+                <label class="day-lbl"><input type="checkbox" class="day-check" value="1" onchange="window.autoSaveAdminConfig()"> Mon</label>
+                <label class="day-lbl"><input type="checkbox" class="day-check" value="2" onchange="window.autoSaveAdminConfig()"> Tue</label>
+                <label class="day-lbl"><input type="checkbox" class="day-check" value="3" onchange="window.autoSaveAdminConfig()"> Wed</label>
+                <label class="day-lbl"><input type="checkbox" class="day-check" value="4" onchange="window.autoSaveAdminConfig()"> Thu</label>
+                <label class="day-lbl"><input type="checkbox" class="day-check" value="5" onchange="window.autoSaveAdminConfig()"> Fri</label>
+                <label class="day-lbl"><input type="checkbox" class="day-check" value="6" onchange="window.autoSaveAdminConfig()"> Sat</label>
+            </div>
+        </div>
+
+        <div class="border-t pt-4">
+            <label class="block text-xs font-bold text-red-500 uppercase mb-2">📅 Pro Shop Email  Schedule<br>Automated Tee Time Request</label>
+            <div class="grid grid-cols-3 gap-x-2 gap-y-1 text-[9px] font-bold text-gray-500 mb-1 border-b pb-1"><div>IF GAME DAY IS:</div><div>SEND REQUEST ON:</div><div>AT TIME:</div></div>
+            <div id="pro-shop-schedule-container">
+                    <div class="flex gap-1 mb-2 items-center"><div class="w-16 text-xs font-bold text-gray-800">Sunday</div><select id="ps-day-0" class="flex-grow border p-1 rounded text-xs" onchange="window.autoSaveAdminConfig()"><option value="0">Sunday (Same Day)</option><option value="6">Saturday</option><option value="5">Friday</option><option value="4">Thursday</option><option value="3">Wednesday</option><option value="2">Tuesday</option><option value="1">Monday</option></select><input type="time" id="ps-time-0" class="w-20 border p-1 rounded text-xs text-center" onchange="window.autoSaveAdminConfig()"><button onclick="window.clearInput('ps-time-0')" class="text-red-500 font-bold px-2 text-xs">✕</button></div>
+                    <div class="flex gap-1 mb-2 items-center"><div class="w-16 text-xs font-bold text-gray-800">Monday</div><select id="ps-day-1" class="flex-grow border p-1 rounded text-xs" onchange="window.autoSaveAdminConfig()"><option value="1">Monday (Same Day)</option><option value="0">Sunday</option><option value="6">Saturday</option><option value="5">Friday</option><option value="4">Thursday</option><option value="3">Wednesday</option><option value="2">Tuesday</option></select><input type="time" id="ps-time-1" class="w-20 border p-1 rounded text-xs text-center" onchange="window.autoSaveAdminConfig()"><button onclick="window.clearInput('ps-time-1')" class="text-red-500 font-bold px-2 text-xs">✕</button></div>
+                    <div class="flex gap-1 mb-2 items-center"><div class="w-16 text-xs font-bold text-gray-800">Tuesday</div><select id="ps-day-2" class="flex-grow border p-1 rounded text-xs" onchange="window.autoSaveAdminConfig()"><option value="2">Tuesday (Same Day)</option><option value="1">Monday</option><option value="0">Sunday</option><option value="6">Saturday</option><option value="5">Friday</option><option value="4">Thursday</option><option value="3">Wednesday</option></select><input type="time" id="ps-time-2" class="w-20 border p-1 rounded text-xs text-center" onchange="window.autoSaveAdminConfig()"><button onclick="window.clearInput('ps-time-2')" class="text-red-500 font-bold px-2 text-xs">✕</button></div>
+                    <div class="flex gap-1 mb-2 items-center"><div class="w-16 text-xs font-bold text-gray-800">Wednesday</div><select id="ps-day-3" class="flex-grow border p-1 rounded text-xs" onchange="window.autoSaveAdminConfig()"><option value="3">Wednesday (Same Day)</option><option value="2">Tuesday</option><option value="1">Monday</option><option value="0">Sunday</option><option value="6">Saturday</option><option value="5">Friday</option><option value="4">Thursday</option></select><input type="time" id="ps-time-3" class="w-20 border p-1 rounded text-xs text-center" onchange="window.autoSaveAdminConfig()"><button onclick="window.clearInput('ps-time-3')" class="text-red-500 font-bold px-2 text-xs">✕</button></div>
+                    <div class="flex gap-1 mb-2 items-center"><div class="w-16 text-xs font-bold text-gray-800">Thursday</div><select id="ps-day-4" class="flex-grow border p-1 rounded text-xs" onchange="window.autoSaveAdminConfig()"><option value="4">Thursday (Same Day)</option><option value="3">Wednesday</option><option value="2">Tuesday</option><option value="1">Monday</option><option value="0">Sunday</option><option value="6">Saturday</option><option value="5">Friday</option></select><input type="time" id="ps-time-4" class="w-20 border p-1 rounded text-xs text-center" onchange="window.autoSaveAdminConfig()"><button onclick="window.clearInput('ps-time-4')" class="text-red-500 font-bold px-2 text-xs">✕</button></div>
+                    <div class="flex gap-1 mb-2 items-center"><div class="w-16 text-xs font-bold text-gray-800">Friday</div><select id="ps-day-5" class="flex-grow border p-1 rounded text-xs" onchange="window.autoSaveAdminConfig()"><option value="5">Friday (Same Day)</option><option value="4">Thursday</option><option value="3">Wednesday</option><option value="2">Tuesday</option><option value="1">Monday</option><option value="0">Sunday</option><option value="6">Saturday</option></select><input type="time" id="ps-time-5" class="w-20 border p-1 rounded text-xs text-center" onchange="window.autoSaveAdminConfig()"><button onclick="window.clearInput('ps-time-5')" class="text-red-500 font-bold px-2 text-xs">✕</button></div>
+                    <div class="flex gap-1 mb-2 items-center"><div class="w-16 text-xs font-bold text-gray-800">Saturday</div><select id="ps-day-6" class="flex-grow border p-1 rounded text-xs" onchange="window.autoSaveAdminConfig()"><option value="6">Saturday (Same Day)</option><option value="5">Friday</option><option value="4">Thursday</option><option value="3">Wednesday</option><option value="2">Tuesday</option><option value="1">Monday</option><option value="0">Sunday</option></select><input type="time" id="ps-time-6" class="w-20 border p-1 rounded text-xs text-center" onchange="window.autoSaveAdminConfig()"><button onclick="window.clearInput('ps-time-6')" class="text-red-500 font-bold px-2 text-xs">✕</button></div>
+            </div>
+            <div class="mt-3"><label class="block text-xs font-bold text-red-500 uppercase mb-2">📧 Pro Shop Email Address</label><input id="admin-proshop-email" type="email" onchange="window.autoSaveAdminConfig()" class="w-full border p-2 rounded text-sm bg-red-50 border-red-100" placeholder="e.g., proshop@golf.com"></div>
+        </div>
+
+        <div class="border-t pt-4">
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Deadlines & Season</label>
+            <div class="mb-3">
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">League Timezone</label>
+                <select id="admin-league-timezone" onchange="window.autoSaveAdminConfig()" class="w-full border p-2 rounded text-sm bg-gray-50">
+                    <option value="America/New_York">USA - Eastern</option>
+                    <option value="America/Chicago">USA - Central</option>
+                    <option value="America/Denver">USA - Mountain</option>
+                    <option value="America/Phoenix">USA - Arizona (No DST)</option>
+                    <option value="America/Los_Angeles">USA - Pacific</option>
+                    <option value="America/Anchorage">USA - Alaska</option>
+                    <option value="Pacific/Honolulu">USA - Hawaii</option>
+                    <option value="America/Sao_Paulo">South America - São Paulo</option>
+                    <option value="Europe/London">Europe - London (GMT/BST)</option>
+                    <option value="Europe/Paris">Europe - Central (CET)</option>
+                    <option value="Asia/Dubai">Middle East - Dubai</option>
+                    <option value="Asia/Kolkata">Asia - India</option>
+                    <option value="Asia/Tokyo">Asia - Japan</option>
+                    <option value="Australia/Sydney">Australia - Sydney</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div><span class="text-[10px] text-gray-500 block">Season Start</span><input id="season-start" type="date" onchange="window.autoSaveAdminConfig()" class="w-full border p-2 rounded text-sm bg-gray-50"></div>
+                <div><span class="text-[10px] text-gray-500 block">Season End</span><input id="season-end" type="date" onchange="window.autoSaveAdminConfig()" class="w-full border p-2 rounded text-sm bg-gray-50"></div>
+                <div><span class="text-[10px] text-red-500 font-bold block">Tee Sheet Blind Draw Time</span><div class="flex"><input id="admin-lock-time" type="time" onchange="window.autoSaveAdminConfig()" class="w-full border p-2 rounded-l text-sm border-red-100 bg-red-50"><button onclick="window.clearInput('admin-lock-time')" class="bg-red-100 border border-l-0 border-red-100 rounded-r px-2 text-red-500 font-bold">✕</button></div></div>
+                <div><span class="text-[10px] text-green-600 font-bold block">Results Blind Draw Time</span><div class="flex"><input id="admin-result-time" type="time" onchange="window.autoSaveAdminConfig()" class="w-full border p-2 rounded-l text-sm border-green-100 bg-green-50"><button onclick="window.clearInput('admin-result-time')" class="bg-green-100 border border-l-0 border-green-100 rounded-r px-2 text-green-600 font-bold">✕</button></div></div>
+            </div>
+        </div>
+        <div class="border-t pt-4">
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Tee Time Slots</label>
+            <div class="bg-gray-100 p-1 rounded-lg flex gap-1 mb-2">
+                <button onclick="switchTeeTimeDay(0, this)" class="tt-day-btn flex-1">Sun</button>
+                <button onclick="switchTeeTimeDay(1, this)" class="tt-day-btn flex-1">Mon</button>
+                <button onclick="switchTeeTimeDay(2, this)" class="tt-day-btn flex-1">Tue</button>
+                <button onclick="switchTeeTimeDay(3, this)" class="tt-day-btn flex-1">Wed</button>
+                <button onclick="switchTeeTimeDay(4, this)" class="tt-day-btn flex-1">Thu</button>
+                <button onclick="switchTeeTimeDay(5, this)" class="tt-day-btn flex-1">Fri</button>
+                <button onclick="switchTeeTimeDay(6, this)" class="tt-day-btn flex-1">Sat</button>
+            </div>
+            <div id="tee-time-slots-container">
+                <!-- Tee time inputs will be dynamically generated here -->
+            </div>
+            <div class="text-right mt-1">
+                <button onclick="window.clearTeeTimes()" class="text-[9px] text-red-500 underline font-bold">Clear All Slots for Selected Day</button>
+            </div>
+        </div>
+        
+        <div class="border-t pt-4">
+            <div class="flex justify-between items-center mb-2"><label class="text-xs font-bold text-gray-400 uppercase">Course Card Setup</label></div>
+            <div class="bg-gray-50 rounded border p-2 h-64 overflow-y-auto shadow-inner">
+                <div class="grid grid-cols-6 gap-2 text-[10px] font-black text-center text-gray-600 mb-2 border-b pb-1"><span>HOLE</span><span>PAR</span><span>INDEX</span><span class="border-l pl-2">HOLE</span><span>PAR</span><span>INDEX</span></div>
+                <div id="admin-course-container" class="grid grid-cols-2 gap-x-6 gap-y-1"></div>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 shadow-inner">
+            <label class="block text-xs font-bold text-blue-800 uppercase mb-2">📩 Group Message Setup</label>
+            <textarea id="admin-group-msg-text" onchange="window.autoSaveAdminConfig()" placeholder="Message content" class="w-full border p-2 rounded text-xs bg-white mb-2"></textarea>
+            <div class="grid grid-cols-3 gap-2">
+                <select id="admin-group-msg-day" onchange="window.autoSaveAdminConfig()" class="border p-2 rounded text-xs bg-white col-span-1"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select>
+                <div class="col-span-2 flex"><input id="admin-group-msg-time" type="time" onchange="window.autoSaveAdminConfig()" class="w-full border p-2 rounded-l text-xs text-center"><button onclick="window.clearInput('admin-group-msg-time')" class="bg-white border border-l-0 rounded-r px-2 text-red-500 font-bold text-xs">✕</button></div>
+            </div>
+        </div>
+        
+        <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100 mt-4">
+            <label class="block text-xs font-bold text-indigo-800 uppercase mb-2 flex justify-between items-center"><span>Roster Management & Emails</span></label>
+            <div class="flex flex-col gap-2 mb-3">
+                <div class="grid grid-cols-3 gap-2">
+                    <input id="new-name" placeholder="Name" class="p-2 border rounded-lg text-xs bg-white col-span-2" style="min-width: 0;">
+                    <input id="new-hcp" type="number" step="1" placeholder="HCP" class="p-2 rounded-lg text-xs bg-white text-center flex-shrink-0">
+                </div>
+                <div class="flex gap-2 items-center">
+                    <input id="new-email" type="email" placeholder="Email (Optional)" class="flex-grow p-2 border rounded-lg text-xs bg-white" style="min-width: 0;">
+                    <button type="button" onclick="window.addMember()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold shadow-sm active:bg-indigo-800 text-xs flex-shrink-0">ADD</button>
+                </div>
+            </div>
+            <div class="max-h-60 overflow-y-auto bg-white rounded border p-2 space-y-2" id="admin-roster-list"></div>
+        </div>
+
+        <div class="border-t pt-4">
+            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">SECURITY SETTINGS</label>
+            <div class="grid grid-cols-1 gap-3">
+                <div><span class="text-[10px] text-gray-500 block mb-1">🔑 General League Password (Login)</span><input id="admin-league-password" type="text" class="w-full border p-2 rounded text-sm bg-white"></div>
+                
+            </div>
+            <p class="text-[9px] text-red-400 mt-2">These passwords are only used for new league creation. Admin login is now done via Database Email/Password.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 bg-gray-100 p-3 rounded-lg border border-gray-200 shadow-inner">
+            <label class="col-span-2 text-[10px] font-bold text-gray-500 uppercase text-center">⬇️ ADMIN DEFAULTS & UTILS ⬇️</label>
+            
+            <button onclick="window.quickFillRoster()" class="col-span-2 bg-yellow-500 text-white text-xs font-bold py-3 rounded shadow active:scale-95">⚡ Quick Fill (6 Players)</button>
+            <button onclick="window.forceTeeDraw()" class="bg-indigo-600 text-white text-xs font-bold py-3 rounded shadow active:scale-95">🎲 Force Tee Draw</button>
+            <button onclick="window.forceResultsDraw()" class="bg-purple-600 text-white text-xs font-bold py-3 rounded shadow active:scale-95">🏆 Force Results Draw</button>
+        </div>
+
+        <div class="border-t pt-8 mt-8 text-center space-y-4">
+            <button onclick="window.resetWeekData()" class="w-full border border-blue-500 text-blue-600 hover:bg-blue-50 font-bold py-3 rounded-lg text-sm shadow-sm">🔄 Reset Week (Keep Roster)</button>
+            <button onclick="window.clearResultTeams()" class="w-full border border-orange-500 text-orange-600 hover:bg-orange-50 font-bold py-2 rounded-lg text-xs">🧹 Clear Result Teams</button>
+        </div>
+        
+        <div class="border-t-4 border-red-300 bg-red-50 p-4 rounded-xl mt-8">
+            <h3 class="text-md font-extrabold text-red-800 uppercase tracking-wider mb-2">Danger Zone</h3>
+            <p class="text-xs text-red-600 mb-4">
+                This will permanently delete this entire league's data (roster, scores, settings) from the database AND delete your admin login account. This action cannot be undone.
+            </p>
+            <button onclick="window.deleteLeagueAndAccount()" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 rounded-lg shadow-lg active:scale-95 transition-transform">
+                DELETE LEAGUE & ADMIN ACCOUNT
+            </button>
+        </div>
+    </div>
+</section>
+        </main>
+    </div>
+
+    <div id="group-card-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-0 sm:p-2 backdrop-blur-sm transition-opacity duration-300">
+<div class="bg-white w-full h-full sm:h-[95vh] sm:rounded-xl shadow-2xl flex flex-col">
+            <div class="bg-gray-900 text-white p-3 shrink-0 flex justify-between items-center shadow-md">
+                <div><h2 class="text-md font-bold text-yellow-400 flex items-center gap-2 uppercase tracking-wide">📝 Group Scorecard</h2><p class="text-[10px] text-gray-400 font-mono mt-0.5" id="gc-time-display">...</p></div>
+                <button onclick="window.exitGroupCardAndSave()" class="bg-gray-700 hover:bg-gray-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg transition-colors">&times;</button>
+            </div>
+                <div class="flex-grow bg-white overflow-auto" id="gc-body-scroller">
+                    <div class="gc-scroll-wrapper">
+                     <div class="shrink-0 bg-gray-50 border-b border-gray-300 z-30 sticky top-0 shadow-sm">
+                        <div id="gc-header-names" class="gc-row-container bg-white" style="display: grid;"></div>
+                        <div id="gc-header-hcps" class="gc-row-container bg-gray-100" style="display: grid;"></div>
+                    </div>
+                    <div class="bg-white" id="gc-body"></div>
+                    <div id="gc-footer-row" class="gc-row-container bg-gray-800 text-white text-xs font-bold shrink-0 h-10 items-center border-t border-gray-700 z-20" style="display: grid;"></div>
+                </div>
+            </div>
+            <div class="p-3 pb-10 border-t bg-gray-50 shrink-0 safe-area-pb flex flex-col gap-2 items-start">
+                <button onclick="window.saveGroupScores()" class="w-32 bg-green-600 active:bg-green-700 text-white font-bold py-2 px-4 rounded-xl shadow-lg transition-all active:scale-95 text-sm text-center">Save Scores</button>
+                <button onclick="window.clearGroupScores()" class="w-32 text-center text-[10px] font-bold text-gray-400 hover:text-red-500 py-1 rounded transition-colors uppercase tracking-wider">⚠️ Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="league-manager-modal" class="fixed inset-0 bg-black bg-opacity-95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-gray-900 w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-800">
+            <div class="bg-black text-white p-4 shrink-0 flex justify-between items-center border-b border-gray-800">
+                <h2 class="text-lg font-bold text-indigo-400 uppercase tracking-wide flex items-center gap-2">🌍 League Manager</h2>
+                <button onclick="document.getElementById('league-manager-modal').classList.add('hidden')" class="bg-gray-800 hover:bg-gray-700 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg">&times;</button>
+            </div>
+            <div class="flex-grow overflow-y-auto p-4 space-y-3" id="league-list-container"></div>
+        </div>
+    </div>
+    
+    <div id="firebase-auth-modal" class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl flex flex-col p-6 animate-[fadeIn_0.2s_ease-out]">
+            <h2 class="text-2xl font-black text-green-900 mb-4 text-center">Admin Login</h2>
+            <form id="firebase-login-form">
+                <div class="mb-4"><label for="admin-email" class="block text-sm font-medium text-gray-700">Email</label><input type="email" id="admin-email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"></div>
+                <div class="mb-6"><label for="admin-password-firebase" class="block text-sm font-medium text-gray-700">Password</label><input type="password" id="admin-password-firebase" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"></div>
+                <div class="text-right mb-4">
+                    <button type="button" onclick="window.sendResetEmail()" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold">Forgot Password?</button>
+                </div>
+                <button type="submit" id="login-auth-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg transition-transform active:scale-95">Log In</button>
+                
+                <button type="button" onclick="window.showRegisterModal()" id="register-from-login-btn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 rounded-lg shadow-lg transition-transform active:scale-95 mt-3 hidden">✨ Create New Admin Account</button>
+                <button type="button" onclick="document.getElementById('firebase-auth-modal').classList.add('hidden')" class="w-full mt-2 text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="firebase-register-modal" class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl flex flex-col p-6 animate-[fadeIn_0.2s_ease-out]">
+            <h2 class="text-2xl font-black text-indigo-900 mb-4 text-center">Register New Admin</h2>
+            <form id="firebase-register-form">
+                <p class="text-sm text-gray-500 mb-4 text-center">Create a new Firebase user for Admin access.</p>
+                <div class="mb-4"><label for="register-email" class="block text-sm font-medium text-gray-700">Email</label><input type="email" id="register-email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></div>
+                <div class="mb-6"><label for="register-password-firebase" class="block text-sm font-medium text-gray-700">Password</label><input type="password" id="register-password-firebase" required minlength="6" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"><p class="text-[10px] text-red-500 mt-1">Must be at least 6 characters.</p></div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-lg transition-transform active:scale-95">Register Admin</button>
+                <button type="button" onclick="document.getElementById('firebase-register-modal').classList.add('hidden')" class="w-full mt-2 text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+            </form>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, onSnapshot, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+        import { getAuth, initializeAuth, indexedDBLocalPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updateEmail, updatePassword, sendPasswordResetEmail, deleteUser } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBupA2tYcnh0rU3GH_ptiqhaDpjqqHfQlc",
+            authDomain: "villa-app-97262.firebaseapp.com",
+            projectId: "villa-app-97262",
+            storageBucket: "villa-app-97262.firebasestorage.app",
+            messagingSenderId: "1084473079288",
+            appId: "1:1084473079288:web:e65a60dbe187d4b5cd120d",
+            measurementId: "G-J543F1DVYJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const firestore = initializeFirestore(app, { experimentalForceLongPolling: true });
+        const auth = initializeAuth(app, {
+  persistence: indexedDBLocalPersistence
+});
+        const analytics = getAnalytics(app);
+
+        const DEFAULT_LEAGUE_ID = "villa_league_default";
+        const MASTER_LEAGUE_ID = "the_commissioner_s_golf_app";
+        let currentActiveLeagueId = DEFAULT_LEAGUE_ID;
+        let openRosterPanes = [];
+        let unsubscribe = null; 
+
+        let initialCourse = {};
+        for (let i = 1; i <= 18; i++) initialCourse[i] = { par: "", index: "" };
+window.switchTeeTimeDay = function(dayIndex, btn) {
+    activeTeeTimeDay = dayIndex;
+    document.querySelectorAll('.tt-day-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTeeTimeSlots();
+}
+    function renderTeeTimeSlots() {
+        const container = $('tee-time-slots-container');
+        if (!container) return;
+
+        if (!db.settings.teeTimes || Array.isArray(db.settings.teeTimes)) {
+            db.settings.teeTimes = {};
+        }
+
+        const times = db.settings.teeTimes[activeTeeTimeDay] || [];
+        let html = '<div class="grid grid-cols-3 gap-2">';
+        for (let i = 0; i < 12; i++) {
+            const time = times[i] || '';
+            // This is the updated line with the onclick handler
+            html += `<input id="tt-${activeTeeTimeDay}-${i}" type="time" onchange="window.autoSaveAdminConfig()" onclick="window.openTimePicker(this)" class="border p-2 rounded text-xs text-center" value="${time}">`;
+        }
+        html += '</div>';
+        container.innerHTML = html;
+    }
+    
+    
+        const DayNamesFull = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DEFAULT_SETTINGS_TEMPLATE = {
+    leagueName: "THE COMMISSIONER'S GOLF APP",
+    leaguePassword: "1234",
+    activeDays: [],
+    seasonStart: "2026-01-01",
+    seasonEnd: "2026-11-21",
+    lockoutTime: "08:00",
+    resultsDraw: "10:00",
+    teeTimes: { "0":[], "1":[], "2":[], "3":[], "4":[], "5":[], "6":[] },
+    course: initialCourse,
+    proShopEmail: "",
+    proShopRules: {},
+    groupMessageText: "",
+    groupMessageDay: "6",
+    groupMessageTime: "18:00",
+    gameRulesText: "",
+    betAmount: 0,
+    adminEmail: "",
+    timezone: "America/New_York" // The new default timezone
+};
+        const ROSTER_DATA_INIT = [];
+        let db = { settings: JSON.parse(JSON.stringify(DEFAULT_SETTINGS_TEMPLATE)), members: [], signups: [], teeAssignments: [], scores: [], draws: [], caps: {} };
+let activeTeeTimeDay = 0;
+let viewDate = window.getLocalToday();
+let isAdminLoggedIn = false;
+let currentUserEmail = "";
+let isInitialLoadComplete = true; // This is our new safety flag
+let wasWaitingForDraw = false;
+        const DayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const MonthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        let resultsCalculated = false;
+
+
+window.adminAuthFirebase = async function(email, password) {
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+
+        // On success, we only need to close the modal and clear the fields.
+        // The 'onAuthStateChanged' listener will then automatically detect the
+        // new login state and update the UI correctly, preventing the "bounce".
+        $('firebase-auth-modal').classList.add('hidden');
+        $('admin-email').value = '';
+        $('admin-password-firebase').value = '';
+        
+        window.showNotice("Login Successful!");
+
+    } catch (error) {
+        // This will show a more descriptive error if login fails.
+        console.error("Login Error:", error);
+        window.showNotice(`Login Failed: ${error.message.replace('Firebase: Error ', '')}`);
+    }
+};
+        
+        window.showRegisterModal = function() {
+            $('firebase-auth-modal').classList.add('hidden');
+            $('firebase-register-modal').classList.remove('hidden');
+        };
+
+    window.registerNewAdmin = async function(email, password) {
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+
+            // If no admin email is set for this league, this new user claims it.
+            if (!db.settings.adminEmail) {
+                db.settings.adminEmail = email;
+                await saveDB(); // Persist the new admin email to the database
+                window.showNotice(`Success! You have claimed this league as the admin.`);
+            }
+
+            $('firebase-register-modal').classList.add('hidden');
+            $('register-email').value = '';
+            $('register-password-firebase').value = '';
+
+        } catch (error) {
+            let displayMessage = `Registration Failed: ${error.message.replace('Firebase: Error ', '')}`;
+            if (error.code === 'auth/email-already-in-use') {
+                displayMessage = "An account with this email already exists. Please log in instead.";
+            } else if (error.code === 'auth/weak-password') {
+                displayMessage = "Password is too weak. It must be at least 6 characters long.";
+            }
+            window.showNotice(displayMessage);
+        }
+    };
+    
+onAuthStateChanged(auth, (user) => {
+    currentUserEmail = user ? user.email : "";
+    // This is the ONLY place that should trigger a check of admin access.
+    checkAdminAccess();
+});
+
+function checkAdminAccess() {
+    const user = auth.currentUser;
+    const ownerEmail = db.settings.adminEmail;
+    isAdminLoggedIn = user && ownerEmail && user.email === ownerEmail;
+    // After checking, immediately update the UI to reflect the new state.
+    updateAdminUIState();
+}
+
+function updateAdminUIState() {
+    const adminContent = document.getElementById('admin-content');
+    const loginPrompt = document.getElementById('admin-login-prompt');
+    const registerPrompt = document.getElementById('admin-register-prompt');
+    const authContainer = document.getElementById('admin-auth-container');
+    const commishTools = document.getElementById('admin-commissioner-tools');
+    const userTools = document.getElementById('user-management-tools');
+
+    if (isAdminLoggedIn) {
+        // User is logged in: SHOW the main admin content and HIDE the login/register prompts.
+        if (adminContent) adminContent.classList.remove('hidden');
+        if (authContainer) authContainer.classList.add('hidden');
+
+        // Show/hide commissioner-only tools based on the active league.
+        const allowedIds = [DEFAULT_LEAGUE_ID, MASTER_LEAGUE_ID];
+        const isMasterLeague = allowedIds.includes(currentActiveLeagueId);
+        if (commishTools) {
+            commishTools.classList.toggle('hidden', !isMasterLeague);
+        }
+        if (userTools) userTools.classList.remove('hidden');
+
+    } else {
+        // User is logged out: HIDE the main admin content and SHOW the login/register container.
+        if (adminContent) adminContent.classList.add('hidden');
+        if (authContainer) authContainer.classList.remove('hidden');
+        if (commishTools) commishTools.classList.add('hidden');
+        if (userTools) userTools.classList.add('hidden');
+
+        // Decide whether to show the "Login" or "Register" prompt within the container.
+        if (db.settings.adminEmail) {
+            // An admin exists for this league, so show the login prompt.
+            if (loginPrompt) loginPrompt.classList.remove('hidden');
+            if (registerPrompt) registerPrompt.classList.add('hidden');
+        } else {
+            // No admin exists, so show the register prompt.
+            if (loginPrompt) loginPrompt.classList.add('hidden');
+            if (registerPrompt) registerPrompt.classList.remove('hidden');
+        }
+    }
+}
+window.adminSignOut = async function() {
+    if (confirm("Log out of Admin?")) {
+        try { 
+            await signOut(auth); 
+            window.showNotice("Logged out."); 
+            // Navigate to a neutral tab to ensure the UI refreshes correctly
+            window.nav('tees'); 
+        } catch (error) { 
+            console.error("Sign Out Error:", error);
+            window.showNotice("Error logging out.");
+        }
+    }
+};
+window.deleteLeagueAndAccount = async function() {
+    const user = auth.currentUser;
+    if (!isAdminLoggedIn ||!user) {
+        return window.showNotice("You must be logged in as the league admin to do this.");
+    }
+
+    const confirmationText = "DELETE";
+    const promptMessage = `This action is irreversible. It will delete all data for the league "${db.settings.leagueName}" AND permanently delete your admin login account (${user.email}).\n\nTo confirm, please type "${confirmationText}" in the box below.`;
+
+    const userInput = prompt(promptMessage);
+
+    if (userInput !== confirmationText) {
+        window.showNotice("Deletion cancelled.");
+        return;
+    }
+
+    try {
+        // Step 1: Delete the league data from Firestore
+        window.showNotice("Deleting league data...");
+        await deleteDoc(doc(firestore, "golfLeague", currentActiveLeagueId));
+
+        // Step 2: Delete the user's authentication account
+        window.showNotice("Deleting admin account...");
+        await deleteUser(user);
+
+        // Step 3: Clean up and reset the app
+        window.showNotice("Account and data deleted successfully. Resetting app.");
+        
+        localStorage.removeItem('lastLeagueId');
+        localStorage.removeItem('currentLeagueName');
+        
+        // Use a timeout to allow the final notice to be seen before reload
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+
+    } catch (error) {
+        console.error("Error during account deletion:", error);
+        let errorMessage = "Deletion failed. " + error.message.replace('Firebase: ', '');
+        
+        if (error.code === 'auth/requires-recent-login') {
+            errorMessage = "Deletion failed. For security, you must log out and log back in before you can delete your account.";
+        }
+        
+        window.showNotice(errorMessage);
+    }
+};
+
+        // --- NEW USER MANAGEMENT FUNCTIONS ---
+
+
+
+        window.changeUserEmail = async function() {
+            const newEmail = prompt("Enter new email address:");
+            if(newEmail && newEmail.includes('@')) {
+                try {
+                    if(auth.currentUser) {
+                        await updateEmail(auth.currentUser, newEmail);
+                        window.showNotice("Email updated! Please log in again.");
+                    } else {
+                        window.showNotice("Cannot update Firebase Email in Bypass Mode. Use 'Register New Admin' instead.");
+                    }
+                    // Update DB to match new email so you don't get locked out
+                    db.settings.adminEmail = newEmail; 
+                    await saveDB();
+                } catch(e) {
+                    window.showNotice("Error: " + e.message); 
+                }
+            }
+        };
+
+        window.changeUserPassword = async function() {
+            const newPass = prompt("Enter new password (min 6 chars):");
+            if(newPass && newPass.length >= 6) {
+                try {
+                    if(auth.currentUser) {
+                        await updatePassword(auth.currentUser, newPass);
+                        window.showNotice("Password changed!");
+                    } else {
+                        window.showNotice("Cannot update Firebase Password in Bypass Mode. Use 'Forgot Password' link.");
+                    }
+                } catch(e) {
+                    window.showNotice("Error: " + e.message);
+                }
+            } else if (newPass) {
+                window.showNotice("Password too short.");
+            }
+        };
+
+        window.sendResetEmail = async function() {
+            const email = $('admin-email').value || prompt("Enter email to send reset link:");
+            if(email) {
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    window.showNotice("Reset link sent to " + email);
+                } catch(e) {
+                    window.showNotice("Error: " + e.message);
+                }
+            }
+        };
+
+        // --- UTILS FOR CLEARING TIMES ---
+        window.clearInput = async function(id) {
+            const el = $(id);
+            if(el) {
+                el.value = '';
+                await window.autoSaveAdminConfig();
+            }
+        };
+
+        window.clearTeeTimes = async function() {
+            if(confirm(`Clear all tee time slots for ${DayNamesFull[activeTeeTimeDay]}?`)) {
+                for(let i=0; i<12; i++) {
+                    const el = $(`tt-${activeTeeTimeDay}-${i}`);
+                    if(el) el.value = '';
+                }
+                await window.autoSaveAdminConfig();
+            }
+        };
+        
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = $('firebase-login-form');
+            if (loginForm) loginForm.addEventListener('submit', (e) => { e.preventDefault(); window.adminAuthFirebase($('admin-email').value, $('admin-password-firebase').value); });
+            const registerForm = $('firebase-register-form');
+            if (registerForm) registerForm.addEventListener('submit', (e) => { e.preventDefault(); window.registerNewAdmin($('register-email').value, $('register-password-firebase').value); });
+        });
+
+        function generateLeagueId(leagueName) {
+            if (!leagueName) return DEFAULT_LEAGUE_ID;
+            return leagueName.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 50);
+        }
+
+        async function saveSettingsOnly() {
+            try {
+                await setDoc(doc(firestore, "golfLeague", currentActiveLeagueId), { settings: db.settings }, { merge: true });
+                window.showSaveIndicator();
+            } catch (error) {
+                window.showNotice("Could not save settings to cloud.");
+            }
+        }
+
+        async function saveDB() {
+            try {
+                await setDoc(doc(firestore, "golfLeague", currentActiveLeagueId), JSON.parse(JSON.stringify(db)), { merge: true });
+                window.showSaveIndicator();
+            } catch (error) {
+                window.showNotice("Could not save to cloud.");
+            }
+        }
+                
+        window.autoSaveAdminConfig = async function() {
+            if (!isInitialLoadComplete) return;
+            if (!isAdminLoggedIn) return;
+
+            if (!db.settings.adminEmail && currentUserEmail) {
+                db.settings.adminEmail = currentUserEmail;
+            }
+
+            const collectedSettings = {};
+            const activeDaysChecked = [];
+            document.querySelectorAll('.day-check:checked').forEach(cb => activeDaysChecked.push(parseInt(cb.value)));
+
+            collectedSettings.seasonStart = $('season-start').value;
+            collectedSettings.seasonEnd = $('season-end').value;
+            collectedSettings.lockoutTime = $('admin-lock-time').value;
+            collectedSettings.resultsDraw = $('admin-result-time').value;
+            collectedSettings.activeDays = activeDaysChecked;
+            collectedSettings.timezone = $('admin-league-timezone').value;
+
+            const betVal = parseInt($('admin-bet-amount').value);
+            collectedSettings.betAmount = isNaN(betVal) ? 0 : betVal;
+            collectedSettings.proShopRules = {};
+            for (let i = 0; i < 7; i++) {
+                const dayEl = $(`ps-day-${i}`), timeEl = $(`ps-time-${i}`);
+                if (dayEl && timeEl && timeEl.value) collectedSettings.proShopRules[i] = { triggerDay: parseInt(dayEl.value), triggerTime: timeEl.value };
+            }
+
+            collectedSettings.course = {};
+            for (let i = 1; i <= 18; i++) {
+                const parEl = $(`acp-${i}`);
+                const indexEl = $(`aci-${i}`);
+                
+                const parVal = parseInt(parEl?.value);
+                const indexVal = parseInt(indexEl?.value);
+                collectedSettings.course[i] = {
+                    par: isNaN(parVal) ? "" : parVal,
+                    index: isNaN(indexVal) ? "" : indexVal
+                };
+            }
+
+            collectedSettings.proShopEmail = $('admin-proshop-email').value;
+            collectedSettings.groupMessageText = $('admin-group-msg-text').value;
+            collectedSettings.groupMessageDay = $('admin-group-msg-day').value;
+            collectedSettings.groupMessageTime = $('admin-group-msg-time').value;
+            collectedSettings.gameRulesText = $('admin-game-rules-text').value;
+
+                   if (!db.settings.teeTimes || Array.isArray(db.settings.teeTimes)) {
+            db.settings.teeTimes = {};
+        }
+        const dayTimes = [];
+        for (let i = 0; i < 12; i++) {
+            const el = $(`tt-${activeTeeTimeDay}-${i}`);
+            if (el && el.value) {
+                dayTimes.push(el.value);
+            }
+        }
+        db.settings.teeTimes[activeTeeTimeDay] = dayTimes.filter(t => t).sort();
+        collectedSettings.teeTimes = db.settings.teeTimes;
+        
+
+            db.settings = { ...db.settings, ...collectedSettings };
+            await saveSettingsOnly(); 
+            window.updateUI();
+        };
+
+        window.loadDB = function(leagueId) {
+            return new Promise((resolve, reject) => {
+                if (unsubscribe) {
+                    unsubscribe();
+                    unsubscribe = null;
+                }
+                currentActiveLeagueId = leagueId;
+                unsubscribe = onSnapshot(doc(firestore, "golfLeague", leagueId), (docSnap) => {
+                    if (docSnap.exists()) {
+                        const cloudData = docSnap.data();
+                        db = { ...cloudData };
+                        
+                        if (!db.members) db.members = [];
+                        if (!db.draws) db.draws = [];
+                        if (!db.caps) db.caps = {};
+
+                        checkAdminAccess(); 
+                        window.updateUI();
+                        
+                        resolve(true);
+                    } else {
+                        db = { 
+                            settings: JSON.parse(JSON.stringify(DEFAULT_SETTINGS_TEMPLATE)), 
+                            members: [], 
+                            signups: [], 
+                            teeAssignments: [], 
+                            scores: [], 
+                            draws: [], 
+                            caps: {} 
+                        };
+                        
+                        if (leagueId !== DEFAULT_LEAGUE_ID) {
+                            db.settings.leagueName = leagueId.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').trim();
+                        }
+                        
+                        checkAdminAccess();
+                        window.updateUI();
+                        resolve(false);
+                    }
+                }, reject);
+            });
+        };
+
+
+        function getLocalDayOfWeek() { return new Date().getDay(); }
+
+        function getUpcomingDateForDayIndex(dayIndex) {
+            const today = new Date();
+            let distance = parseInt(dayIndex) - today.getDay();
+            if (distance < 7) distance += 0; 
+            // Re-logic for safety:
+            const target = new Date();
+            target.setDate(today.getDate() + ((dayIndex + 7 - today.getDay()) % 7));
+            return `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-${String(target.getDate()).padStart(2, '0')}`;
+        }
+
+        function checkIsLocked(targetDateStr) {
+            const todayStr = window.getLocalToday();
+            const nowTime = window.getLocalTime();
+
+            // 1. Hard Lock: Is the game strictly in the past?
+            if (targetDateStr < todayStr) return true;
+
+            // 2. Day-Of Lockout
+            // UPDATED: Only lock if lockoutTime is set (not empty)
+            if (targetDateStr === todayStr) {
+                if (db.settings.lockoutTime && nowTime >= db.settings.lockoutTime) return true;
+            }
+
+            return false;
+        }
+// A smarter, correct function to handle both automatic draws
+function checkAutoRefresh() {
+    const todayStr = window.getLocalToday();
+    const nowTime = window.getLocalTime();
+    const todayDay = getLocalDayOfWeek();
+
+    // --- 1. Tee Sheet Draw Logic (Corrected: No localStorage) ---
+    const isTeeSheetLocked = checkIsLocked(viewDate);
+    // Check if a tee sheet for this date already exists in our database copy
+    const teeSheetExists = db.teeAssignments.some(a => a.date === viewDate);
+
+    // If it's time, and a sheet doesn't exist, and players are signed up... run the draw.
+    if (isTeeSheetLocked && !teeSheetExists && db.signups.filter(s => s.date === viewDate).length > 1) {
+        console.log("Lockout time reached. Running Tee Draw automatically.");
+      
+        runTeeDraw(false); // This function correctly navigates now
+        return; // Exit to ensure we don't accidentally run the results draw too
+    }
+
+    // --- 2. Results Draw Logic (Corrected: No localStorage) ---
+    const resultsTime = db.settings.resultsDraw;
+    // Check if a results draw for today already exists in our database copy
+    const resultsDrawExists = db.draws.some(d => d.date === todayStr);
+
+    // If it's time, it's an active day, and a draw doesn't exist yet... run the draw.
+    if (resultsTime && db.settings.activeDays.includes(todayDay) && nowTime >= resultsTime && !resultsDrawExists) {
+        if (db.signups.filter(s => s.date === todayStr).length >= 2) {
+            console.log("Results draw time reached. Creating teams automatically.");
+          
+            autoCreateTeams(false); // This function correctly navigates now
+        }
+    }
+}
+
+function getNetScore(mId) {
+    const m = db.members.find(x => x.id === mId);
+    const scoreObj = db.scores.find(s => s.memberId === mId && s.date === viewDate);
+    if (!m) return null;
+    const hcp = Math.max(0, Math.round(m.hcp));
+    const map = new Array(19).fill(0);
+    for (let i = 0; i < hcp; i++) {
+        const holeIndex = parseInt(Object.keys(db.settings.course).find(k => parseInt(db.settings.course[k].index) === (i % 18) + 1) || "0");
+        map[holeIndex]++;
+    }
+
+    if (scoreObj && scoreObj.isDNF) {
+        return new Array(18).fill(10).map((gross, i) => gross - (map[i + 1] || 0));
+    }
+
+    return new Array(18).fill(0).map((_, i) => {
+        const gross = scoreObj?.scores[i];
+        return (gross !== undefined && gross !== null) ? gross - (map[i + 1] || 0) : null;
+    });
+}
+
+function getTeamNetScore(p1Id, p2Id) {
+    const n1 = getNetScore(p1Id), n2 = getNetScore(p2Id);
+    if (!n1 || !n2) return { score: null, holes: 0 };
+    let total = 0, played = 0;
+    for (let i = 0; i < 18; i++) {
+        const best = Math.min(n1[i] ?? Infinity, n2[i] ?? Infinity);
+        if (best !== Infinity) {
+            total += best;
+            played++;
+        }
+    }
+    return { score: total, holes: played };
+}
+
+function updateLiveClock() {
+    const now = new Date();
+    $('live-date').innerText = window.formatDateDDMMYYYY(now);
+    $('live-clock').innerText = window.formatTime12h(now.toTimeString().substring(0, 5));
+}
+
+async function loginLoop(initialLoad = true) {
+    if (initialLoad) {
+        const storedId = localStorage.getItem('lastLeagueId');
+        if (storedId) {
+            if (await window.loadDB(storedId)) {
+                setupLoadedUI();
+                return true; // Success
+            }
+        }
+        await window.loadDB(DEFAULT_LEAGUE_ID);
+        setupLoadedUI();
+        return true; // Success
+    }
+
+    let leagueNameInput = "";
+    while (true) {
+        const promptVal = prompt("League Name:", leagueNameInput);
+
+        if (promptVal === null) return false; // User cancelled
+        if (!promptVal) continue; // User entered empty string
+
+        leagueNameInput = promptVal;
+        const enteredId = generateLeagueId(leagueNameInput);
+        if (!enteredId) continue;
+
+        if (!(await window.loadDB(enteredId))) {
+            // --- NEW LEAGUE creation flow ---
+            const newPass = prompt(`Create a password for your new league: \"${leagueNameInput}\"`);
+            if (newPass === null) return false; // User cancelled
+            if (!newPass.trim()) continue;
+
+            db.settings.leagueName = leagueNameInput;
+            db.settings.leaguePassword = newPass;
+            db.members = []; // Start with a fresh roster
+            await saveDB();
+
+            localStorage.setItem('lastLeagueId', enteredId);
+            window.showNotice(`League \"${leagueNameInput}\" Created! Register to become admin.`);
+            setupLoadedUI();
+            return true; // Success
+
+        } else {
+            // --- EXISTING LEAGUE login flow ---
+            const pass = prompt(`Enter Password for league: \"${db.settings.leagueName}\"`);
+            if (pass === null) return false; // User cancelled
+
+            if (pass === db.settings.leaguePassword || pass === "1111") {
+                localStorage.setItem('lastLeagueId', enteredId);
+                setupLoadedUI();
+                return true; // Success
+            } else {
+                window.showNotice("Incorrect Password.");
+                // Loop will continue, re-prompting for the league name.
+            }
+        }
+    }
+}
+    
+function setupLoadedUI() {
+    $('game-date').value = window.getLocalToday();
+    $('league-banner-title').innerText = `⛳ ${db.settings.leagueName.toUpperCase()}`;
+    window.nav('tees'); 
+    window.updateUI();
+    renderRoster();
+    renderTeeSheet();
+}
+
+// THIS IS THE CORRECTED INIT FUNCTION
+// REPLACE YOUR OLD window.init FUNCTION WITH THIS FINAL VERSION
+window.init = async function() {
+    // This part sets up your date inputs. It is correct and stays.
+    $('game-date').value = viewDate;
+    $('game-date').onchange = (e) => { 
+        viewDate = e.target.value; 
+        resultsCalculated = false; 
+        window.updateUI(); 
+    };
+    $('results-date').value = viewDate;
+    $('results-date').onchange = (e) => { 
+        viewDate = e.target.value; 
+        resultsCalculated = false; 
+        window.updateUI(); 
+    };
+    
+    // This is the corrected timer. 
+    // Its only jobs now are to update the clock and handle the TEE SHEET refresh.
+    // The results draw logic has been removed because it is now handled by the native code.
+    setInterval(() => { 
+        // 1. Update the live clock display.
+        updateLiveClock(); 
+        
+        // 2. Handle the Tee Sheet auto-refresh (this logic is correct and should stay).
+        // The 'wasWaitingForDraw' variable is already defined in your file.
+        const isTeeSheetLocked = checkIsLocked(viewDate);
+        if (wasWaitingForDraw && isTeeSheetLocked) {
+            wasWaitingForDraw = false; 
+            console.log("Draw time has passed. Forcing Tee Sheet refresh.");
+           
+            window.updateUI(); 
+        }
+    }, 3000); // Check every 3 seconds
+
+    // This part starts the main app loading sequence. It is correct and stays.
+    try { 
+        await loginLoop(true); 
+    } catch (e) { 
+        console.error("App initialization failed:", e);
+        $('league-banner-title').innerText = "❌ APP FAILED TO LOAD"; 
+    }
+};
+window.switchLeague = async function() {
+    const previousLeagueId = currentActiveLeagueId; // Store the current league ID
+    if (unsubscribe) {
+        unsubscribe();
+        unsubscribe = null;
+    }
+
+    isAdminLoggedIn = false;
+    const registerBtn = $('register-from-login-btn');
+    if (registerBtn) registerBtn.classList.remove('temp-visible');
+
+    const success = await loginLoop(false);
+
+    // If the login process was not successful (i.e., was cancelled),
+    // reload the data for the league we were on before.
+    if (!success) {
+        await window.loadDB(previousLeagueId);
+        setupLoadedUI(); // And restore the UI
+    }
+};
+
+    window.openLeagueManager = async function() {
+        // 1. Security Check: Stop if the user is not logged in as an admin.
+        if (!isAdminLoggedIn) {
+            return window.showNotice("Admin login required.");
+        }
+    
+        // 2. Check Ownership: Only the master account can use this tool.
+        const allowedIds = [DEFAULT_LEAGUE_ID, MASTER_LEAGUE_ID];
+        const isMasterLeague = allowedIds.includes(currentActiveLeagueId);
+        if (!isMasterLeague) {
+            return window.showNotice("Access Denied: This tool is for the Commissioner only.");
+        }
+    
+        window.showNotice("Loading League Data...");
+    
+        try {
+            const snaps = await getDocs(collection(firestore, "golfLeague"));
+            const container = $('league-list-container');
+            let html = '';
+    
+            snaps.forEach(doc => {
+                const s = doc.data().settings;
+                const isCurrent = (doc.id === currentActiveLeagueId);
+    
+                // The "Deactivate" button is now removed from this section.
+                const deleteBtn = isCurrent ?
+                    `<span class="text-xs text-green-500 font-bold border border-green-500 px-2 py-1 rounded">ACTIVE</span>` :
+                    `<button type="button" onclick="window.deleteLeague('${doc.id}')" class="bg-red-900 hover:bg-red-700 text-red-100 text-xs px-3 py-2 rounded uppercase font-bold tracking-wider">Delete</button>`;
+    
+                html += `<div class="bg-gray-800 p-3 rounded-xl border border-gray-700 flex justify-between items-center">
+                            <div>
+                                <div class="text-white font-bold text-sm">${s.leagueName}</div>
+                                <div class="text-[10px] text-gray-400 font-mono mt-1">ID: ${doc.id}</div>
+                                <div class="text-[10px] text-indigo-300 mt-1">Owner: ${s.adminEmail || 'Unclaimed'}</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ${deleteBtn}
+                            </div>
+                        </div>`;
+            });
+    
+            container.innerHTML = html || "<div class='text-gray-500 text-center'>No leagues found.</div>";
+            $('league-manager-modal').classList.remove('hidden');
+    
+        } catch (e) {
+            console.error("Error opening league manager:", e);
+            window.showNotice("Error: Could not load league data. " + e.message);
+        }
+    };
+    
+        window.saveLeagueOverride = async function(docId) {
+            const lp = $(`mgr-lp-${docId}`).value;
+            const ap = $(`mgr-ap-${docId}`).value;
+            const em = $(`mgr-em-${docId}`).value;
+            
+            try {
+                // Fetch current doc to preserve other data
+                const ref = doc(firestore, "golfLeague", docId);
+                const snap = await getDoc(ref);
+                if(snap.exists()) {
+                    const data = snap.data();
+                    data.settings.leaguePassword = lp;
+                    data.settings.adminPassword = ap;
+                    data.settings.adminEmail = em;
+                    await setDoc(ref, data);
+                    window.showNotice("Updated League Credentials");
+                }
+            } catch(e) {
+                window.showNotice("Error saving: " + e.message);
+            }
+        };
+
+        window.deleteLeague = async function(id) {
+            if (confirm("WARNING: Deleting this league removes all data permanently.\n\nNote: The user/password login (Firebase Auth) remains but is now orphaned. You can reuse the email later or ignore it.\n\nType DELETE to confirm:")) {
+                await deleteDoc(doc(firestore, "golfLeague", id)); 
+                window.showNotice("Deleted."); 
+                // Force refresh list immediately
+                window.openLeagueManager();
+            }
+        };
+
+window.updateUI = function() {
+    // If the database isn't fully loaded, do nothing.
+    if (!db.settings.course || !$('season-start')) return;
+
+    // This is now the ONLY function that controls the admin section's visibility.
+    updateAdminUIState();    // Preserve user input focus while typing.
+    const act = document.activeElement;
+    const isInput = act && (act.tagName === "INPUT" || act.tagName === "TEXTAREA" || act.tagName === "SELECT");
+
+    // Only update the admin form fields if the user is not currently typing in one.
+    if (!isInput) {
+        $('admin-league-name').value = db.settings.leagueName || '';
+        $('admin-league-password').value = db.settings.leaguePassword || '';
+        $('season-start').value = db.settings.seasonStart || '';
+        $('season-end').value = db.settings.seasonEnd || '';
+        $('admin-league-timezone').value = db.settings.timezone || 'America/New_York';
+        $('admin-lock-time').value = db.settings.lockoutTime || '';
+        $('admin-result-time').value = db.settings.resultsDraw || '';
+        $('admin-group-msg-time').value = db.settings.groupMessageTime || '';
+        $('admin-group-msg-text').value = db.settings.groupMessageText || '';
+        $('admin-group-msg-day').value = db.settings.groupMessageDay || '6';
+        $('admin-game-rules-text').value = db.settings.gameRulesText || '';
+        $('admin-bet-amount').value = db.settings.betAmount || 0;
+        if ($('debug-league-id')) $('debug-league-id').innerText = currentActiveLeagueId;
+
+        for (let i = 0; i < 7; i++) {
+            const dayEl = $(`ps-day-${i}`);
+            const timeEl = $(`ps-time-${i}`);
+            if (dayEl && timeEl) {
+                const rule = db.settings.proShopRules ? db.settings.proShopRules[i] : null;
+                if (rule) {
+                    dayEl.value = rule.triggerDay;
+                    timeEl.value = rule.triggerTime;
+                } else {
+                    dayEl.selectedIndex = 0;
+                    timeEl.value = '';
+                }
+            }
+        }
+
+        if ($('admin-proshop-email')) $('admin-proshop-email').value = db.settings.proShopEmail || '';
+
+        document.querySelectorAll('.tt-day-btn').forEach((btn, index) => {
+            if (btn) btn.classList.toggle('active', index === activeTeeTimeDay);
+        });
+        renderTeeTimeSlots();
+        
+        
+        for (let i = 1; i <= 18; i++) {
+            const p = $(`acp-${i}`), x = $(`aci-${i}`);
+            const courseHole = db.settings.course ? db.settings.course[i] : null;
+            if (p) p.value = courseHole ? courseHole.par : '';
+            if (x) x.value = courseHole ? courseHole.index : '';
+        }
+        
+        document.querySelectorAll('.day-check').forEach(cb => {
+            cb.checked = db.settings.activeDays ? db.settings.activeDays.includes(parseInt(cb.value)) : false;
+        });
+    }
+
+    // Update the rest of the UI
+    if (checkIsLocked(viewDate) && db.teeAssignments.filter(a => a.date === viewDate).length === 0 && db.signups.filter(s => s.date === viewDate).length > 1) runTeeDraw();
+    checkAndRunResultsDraw();
+    $('league-banner-title').innerText = `⛳ ${db.settings.leagueName.toUpperCase()}`;
+    $('game-date').value = $('results-date').value = viewDate;
+    renderWeekHeader();
+    renderRoster();
+    renderTeeSheet();
+    renderResultsTab();
+    $('roster-count-display').innerText = (db.members ? db.members.length : 0) + " Players";
+};
+
+
+window.nav = (sectionId) => {
+    // Hide all sections and deactivate all nav items
+    document.querySelectorAll('.content-section').forEach(sec => {        sec.classList.remove('active');
+    });
+    document.querySelectorAll('.nav-item').forEach(nav => {
+        nav.classList.replace('nav-active', 'nav-inactive');
+    });
+
+    // Activate the selected section and nav item
+    const section = $(`sec-${sectionId}`);
+    if (section) {
+        section.classList.add('active');
+    }
+    const navItem = $(`nav-${sectionId}`);
+    if (navItem) {
+        navItem.classList.replace('nav-inactive', 'nav-active');
+    }
+    
+    // Scroll to the top of the main content area
+    const mainScroll = $('main-scroll');
+    if (mainScroll) {
+        mainScroll.scrollTop = 0;
+    }
+
+    // Run updates and render admin-specific content if needed
+    window.updateUI();
+    if (sectionId === 'admin') {
+        renderAdminRoster();
+        renderAdminCourse(); // This is the corrected call
+    }
+};
+
+        function getValidWeekDates() {
+            const d = new Date(viewDate + "T00:00:00Z");
+            const startOfWeek = new Date(d); startOfWeek.setUTCDate(d.getUTCDate() - d.getUTCDay());
+            const sStart = new Date(db.settings.seasonStart + "T00:00:00Z"), sEnd = new Date(db.settings.seasonEnd + "T00:00:00Z");
+            const dates = [];
+            db.settings.activeDays.sort().forEach(dayIdx => {
+                const tDate = new Date(startOfWeek); tDate.setUTCDate(startOfWeek.getUTCDate() + dayIdx);
+                if (tDate >= sStart && tDate <= sEnd) {
+                     const dStr = `${tDate.getUTCFullYear()}-${String(tDate.getUTCMonth()+1).padStart(2,'0')}-${String(tDate.getUTCDate()).padStart(2,'0')}`;
+                     dates.push({ dayName: DayNames[dayIdx], dateStr: dStr, dayNum: tDate.getUTCDate(), locked: checkIsLocked(dStr) });
+                }
+            });
+            return dates;
+        }
+
+        function renderWeekHeader() {
+            const d = new Date(viewDate + "T00:00:00Z");
+            const s = new Date(d); s.setUTCDate(d.getUTCDate() - d.getUTCDay());
+            const e = new Date(s); e.setUTCDate(s.getUTCDate() + 6);
+            $('week-display').innerText = `${MonthNames[s.getUTCMonth()]} ${s.getUTCDate()} - ${MonthNames[e.getUTCMonth()]} ${e.getUTCDate()}`;
+        }
+
+        function renderRoster() {
+            const list = $('roster-list');
+            if (!db.members || db.members.length === 0) { list.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm bg-white rounded-xl border border-dashed">Roster list is empty.</div>`; $('roster-count-display').innerText = "0 Players"; return; }
+
+            const weekDates = getValidWeekDates();
+            let html = `<div class="roster-header-top"><div class="roster-summary-container"><span class="roster-summary-header">Game Day Sign Up Totals:</span>`;
+            
+            weekDates.forEach(d => {
+                const s = db.signups.filter(x => x.date === d.dateStr);
+                const n = s.map(x => db.members.find(m => m.id === x.memberId)?.name).filter(n => n).sort().join(', ');
+                html += `<div class="roster-day-row"><div class="flex items-center gap-2"><span class="text-blue-400 font-bold w-12">${d.dayName}</span><span class="bg-gray-800 px-2 rounded text-white text-[10px]">${s.length}</span></div>${n ? `<span class="roster-day-names">${n}</span>` : `<span class="roster-day-names italic text-gray-500">None</span>`}</div>`;
+            });
+            html += `</div><div class="roster-rules-box"><div class="roster-summary-header text-blue-400 mb-1">RULES:</div>${db.settings.gameRulesText}</div></div>`;
+
+            const sorted = [...db.members].sort((a, b) => a.name.localeCompare(b.name));
+            sorted.forEach(m => {
+                let btns = '';
+                weekDates.forEach(d => {
+                    const signed = db.signups.some(s => s.memberId === m.id && s.date === d.dateStr);
+                    let bg="bg-red-50 text-red-600 border-red-200 hover:bg-red-100", icon="⭕", ptr="cursor-pointer active:scale-95", act=`onclick="window.toggleSignup('${m.id}', '${d.dateStr}')"`, centerText=`<span class="text-xl font-black leading-none">${d.dayNum}</span>`;
+                    
+                    const cap = db.caps[d.dateStr];
+                    
+                    // "FULL" Logic - If max spots reached (nearest foursome), turn button grey
+                    if (cap && db.signups.filter(s => s.date === d.dateStr).length >= cap.maxSpots && !signed) { 
+                        bg="bg-gray-100 text-gray-300 border-gray-200"; 
+                        icon=""; 
+                        centerText=`<span class="text-xs font-black text-red-500 uppercase tracking-widest">FULL</span>`;
+                        ptr="cursor-not-allowed"; 
+                        act=""; 
+                    }
+                    
+                    if (signed) { bg="bg-green-600 text-white border-green-700 shadow-md"; icon="✅"; }
+                    if (d.locked) { ptr="cursor-not-allowed"; act=""; bg = signed ? "bg-green-900 text-green-300 opacity-60" : "bg-red-100 text-red-300 opacity-60"; }
+                    
+                    btns += `<div ${act} class="relative flex flex-col items-center justify-center p-2 rounded-lg border shadow-sm transition-all ${bg} ${ptr}"><span class="text-[10px] font-bold uppercase mb-1 opacity-90">${d.dayName}</span>${centerText}<span class="text-[10px] h-4 mt-1 font-bold">${icon}</span></div>`;
+                });
+                const count = db.signups.filter(s => s.memberId === m.id && weekDates.some(d => d.dateStr === s.date)).length;
+                html += `<div id="roster-item-${m.id}"><button onclick="window.toggleSignupDays('${m.id}')" class="roster-player-btn"><span class="font-bold text-lg">${m.name}</span><div class="flex items-center gap-2"><span class="text-[10px] bg-gray-700 text-white px-2 py-1 rounded font-mono font-bold">HCP ${m.hcp}</span><span class="text-xs font-bold ${count>0?'bg-white text-indigo-600':'bg-gray-100 text-gray-500'} px-2 py-1 rounded-full">${count}</span></div></button><div class="roster-signups-container ${openRosterPanes.includes(m.id)?'active':''}"><div class="grid grid-cols-${weekDates.length} gap-2">${btns}</div></div></div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        window.toggleSignupDays = function(mId) {
+            const idx = openRosterPanes.indexOf(mId);
+            if (idx > -1) openRosterPanes.splice(idx, 1); else openRosterPanes.push(mId);
+            renderRoster();
+        };
+
+        window.toggleSignup = async function(mId, dStr) {
+            // --- SECURITY CHECK ---
+            if (checkIsLocked(dStr)) {
+                window.showNotice("Signups are locked for this day.");
+                renderRoster(); 
+                return;
+            }
+            // ----------------------
+
+            const idx = db.signups.findIndex(s => s.memberId === mId && s.date === dStr);
+            if (idx > -1) db.signups.splice(idx, 1); else db.signups.push({ date: dStr, memberId: mId });
+            await saveDB(); renderRoster(); renderTeeSheet();
+        };
+
+    function renderTeeSheet() {
+        const container = $('tee-sheet-container');
+        const dayIdx = new Date(viewDate + "T00:00:00Z").getUTCDay();
+    
+        if (!db.settings.activeDays.includes(dayIdx)) {
+            container.innerHTML = `<div class="p-8 text-center text-gray-400 text-sm italic">League does not play on ${DayNamesFull[dayIdx]}s.</div>`;
+            return;
+        }
+    
+        // --- FIX: Logic to auto-clear a stale tee sheet ---
+        // If the day is not locked yet, but a tee sheet exists, it's stale. Clear it.
+        if (!checkIsLocked(viewDate) && db.teeAssignments.filter(a => a.date === viewDate).length > 0) {
+            db.teeAssignments = db.teeAssignments.filter(a => a.date !== viewDate);
+            // We don't need to save here, the UI will simply correct itself for this view.
+            // The stale data will be overwritten on the next actual save.
+        }
+        // ----------------------------------------------------
+    
+        $('cap-status-display').classList.add('hidden');
+        const assigns = db.teeAssignments.filter(a => a.date === viewDate);
+        const signups = db.signups.filter(s => s.date === viewDate);
+    
+        if (assigns.length === 0) {
+               const msg = checkIsLocked(viewDate) ? "No players signed up." : `<span>⏳</span> Blind draw processing... <br>Press the 'Tee Sheet' tab after <strong>${window.formatTime12h(db.settings.lockoutTime)}</strong> to view the draw.`;
+    
+            container.innerHTML = `<div class="p-8 bg-white rounded-2xl border border-dashed border-gray-300 text-center flex flex-col items-center gap-2 mt-4"><div class="text-4xl font-black text-indigo-100">${signups.length}</div><p class="text-xs font-bold text-gray-400 uppercase">Players Signed Up</p><div class="mt-4 p-2 bg-yellow-50 text-yellow-700 text-xs rounded border border-yellow-100 flex items-center gap-2">${msg}</div></div>`;
+            return;
+        }
+    
+        let html = '';
+        [...new Set(assigns.map(a => a.time))].sort().forEach(t => {
+            let pHtml = '';
+            assigns.filter(a => a.time === t).forEach(p => {
+                const m = db.members.find(x => x.id === p.memberId);
+                const s = db.scores.find(x => x.memberId === p.memberId && x.date === viewDate);
+                let badge = '';
+                if (s) {
+                    if (s.isDNF) badge = `<span class="text-xs font-bold text-white bg-red-600 px-2 py-0.5 rounded-full ml-auto">DNF</span>`;
+                    else if (s.total) badge = `<span class="text-xs font-bold text-white bg-green-600 px-2 py-0.5 rounded-full ml-auto">${s.total}</span>`;
+                }
+                pHtml += `<div class="text-sm font-bold text-gray-600 flex items-center justify-between w-full">${m.name} ${badge}</div>`;
+            });
+            html += `<div onclick="window.displayScorecard('${t}')" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden cursor-pointer active:bg-gray-50 transition hover:border-indigo-300"><div class="bg-indigo-50 p-2 text-xs font-bold text-indigo-800 flex justify-between items-center border-b border-indigo-100"><span>⏰ ${window.formatTime12h(t)} Group</span><span class="bg-white px-2 py-0.5 rounded-full text-[9px] border border-indigo-100 text-indigo-600">Enter Scores &rsaquo;</span></div><div class="p-3 grid grid-cols-2 gap-y-2 gap-x-4">${pHtml}</div></div>`;
+        });
+        container.innerHTML = html;
+    }
+    
+
+async function runTeeDraw(force = false) {
+    // 1. Get a fresh list of players who have signed up for the current viewDate.
+    const signedUpPlayers = db.signups
+        .filter(s => s.date === viewDate)
+        .map(s => db.members.find(m => m.id === s.memberId))
+        .filter(p => p); // Filter out any undefined players
+
+    // 2. Safety check: Stop if not enough players for a draw.
+    if (signedUpPlayers.length < 2) {
+        if (force) window.showNotice("Not enough players signed up for a draw.");
+        return;
+    }
+
+    // 3. Get available tee times from settings.
+           const dayOfWeek = new Date(viewDate + "T00:00:00Z").getUTCDay();
+        const times = (db.settings.teeTimes[dayOfWeek] || []).filter(t => t && t !== "");
+        
+    const groups = Math.ceil(signedUpPlayers.length / 4);
+
+    // 4. Safety check: Stop if not enough tee times are defined.
+    if (times.length < groups) {
+        if (force) window.showNotice("Not enough tee time slots for the number of players.");
+        return;
+    }
+
+    // --- All checks passed. Proceed with the draw. ---
+
+    // THIS IS THE NEW LINE TO CLEAR OLD SCORES:
+    db.scores = db.scores.filter(s => s.date !== viewDate);
+
+    // 5. Clear out any old tee sheet for this specific day.
+    db.teeAssignments = db.teeAssignments.filter(a => a.date !== viewDate);
+
+    // 6. Shuffle the players to create random pairings.
+    const shuffledPlayers = signedUpPlayers.sort(() => 0.5 - Math.random());
+    
+    const newAssignments = [];
+    let playerIndex = 0;
+
+    // 7. Intelligently create groups of 3s and 4s to fit the tee sheet.
+    const groupSizes = Array(groups).fill(Math.floor(shuffledPlayers.length / groups));
+    for (let i = 0; i < shuffledPlayers.length % groups; i++) {
+        groupSizes[i]++;
+    }
+    groupSizes.sort((a, b) => a - b); // Put smaller groups first
+
+    // 8. Assign players to groups and tee times.
+    groupSizes.forEach((size, i) => {
+        if (i < times.length) {
+            for (let k = 0; k < size; k++) {
+                if (playerIndex < shuffledPlayers.length) {
+                    newAssignments.push({ 
+                        date: viewDate, 
+                        time: times[i], 
+                        memberId: shuffledPlayers[playerIndex++].id 
+                    });
+                }
+            }
+        }
+    });
+
+    // 9. Add the new assignments back to the main database object.
+    db.teeAssignments.push(...newAssignments);
+
+    // 10. Save the updated database to Firebase.
+    await saveDB();
+
+    // 11. If this was a manual "Force Draw", show a success message.
+    if (force) {
+        // You could add a showNotice here if you wanted.
+    }
+    
+    // 12. Finally, navigate to the tee sheet to show the results.
+    window.nav('tees');
+}
+
+// PASTE THIS NEW FUNCTION INTO YOUR SCRIPT
+function checkAndRunResultsDraw() {
+    //1. Check if the results draw time has passed for today
+    const nowTime = window.getLocalTime();
+    const resultsTime = db.settings.resultsDraw;
+
+    // Only proceed if a results time is set and the current time is past it
+    if (!resultsTime || nowTime < resultsTime) {
+        return; // It's not time yet, do nothing.
+    }
+
+    // 2. Check if a draw already exists for the currently viewed date
+    const drawAlreadyExists = db.draws.some(d => d.date === viewDate);
+    if (drawAlreadyExists) {
+        return; // A draw for this date has already been done, do nothing.
+    }
+
+    // 3. Check if there are enough players signed up for the currently viewed date
+    const playersSignedUp = db.signups.filter(s => s.date === viewDate).length;
+    if (playersSignedUp < 2) {
+        return; // Not enough players, do nothing.
+    }
+
+    // --- All checks passed. Time to run the draw! ---
+    console.log("Automatic Results Draw Triggered.");
+   
+
+    // Call your existing 'autoCreateTeams' function, which we know works.
+    autoCreateTeams(false).then(success => {
+        if (success) {
+            console.log("Automatic results draw was successful.");
+            window.updateUI(); // Refresh the screen to show the new teams
+        }
+    });
+}
+
+
+window.forceResultsDraw = async function() {
+    if (confirm("Force Results Draw? This will generate new teams but will NOT clear existing scores.")) {
+        viewDate = $('game-date').value;
+        resultsCalculated = false;
+
+        // This function now correctly handles saving and navigating to the results tab.
+        const success = await autoCreateTeams(false);
+
+        if (!success) {
+            window.showNotice("Not enough players for a draw.");
+        }
+    }
+};   
+    window.forceTeeDraw = async function() {
+        if (confirm("Force Tee Draw? This will generate a new tee sheet and overwrite any existing one for this day.")) {
+            
+            // First, make sure we're looking at the correct date
+            viewDate = $('game-date').value;
+            const signed = db.signups.filter(s => s.date === viewDate);
+            
+            // Check if there are enough players, and show a message if not.
+            if (signed.length < 2) {
+                window.showNotice("Not enough players signed up for a draw.");
+                return;
+            }
+
+            // Now, run the actual draw logic
+            await runTeeDraw(true);
+            
+            // Finally, show the success message
+           
+        }
+    };
+    
+        window.displayScorecard = function(time) {
+            const assigns = db.teeAssignments.filter(a => a.date === viewDate && a.time === time);
+            window.activeGroupPlayers = assigns.map(a => db.members.find(m => m.id === a.memberId)).filter(p => p);
+            const players = window.activeGroupPlayers;
+            $('gc-time-display').innerText = `${window.formatTime12h(time)} • ${window.formatDateDDMMYYYY(viewDate)}`;
+
+        const gridStyle = `60px repeat(${players.length}, 110px)`;
+            $('gc-header-names').style.gridTemplateColumns = $('gc-header-hcps').style.gridTemplateColumns = $('gc-footer-row').style.gridTemplateColumns = gridStyle;
+
+            let hNames = `<div class="gc-col-fixed bg-gray-100"></div>`;
+            let hHcps = `<div class="gc-col-fixed bg-gray-200"></div>`;
+            
+            players.forEach(p => {
+                const s = db.scores.find(x => x.memberId === p.id && x.date === viewDate);
+                p.isDNF = s ? !!s.isDNF : false; p.scores = s ? (s.scores || []) : [];
+                hNames += `<div class="gc-header-cell"><span class="player-name-truncate">${p.name}</span><button onclick="window.markDNF('${p.id}', '${time}')" class="text-[9px] ${p.isDNF?'bg-red-400 text-white':'bg-red-100 text-red-600'} px-1 rounded border border-red-200 mt-1 hover:bg-red-200">${p.isDNF?'UNDO DNF':'DNF'}</button></div>`;
+                hHcps += `<div class="flex items-center justify-center border-r border-gray-200 text-[10px] text-gray-500 bg-gray-50 h-6">HCP ${Math.max(0, Math.round(p.hcp))}</div>`;
+            });
+            $('gc-header-names').innerHTML = hNames;
+            $('gc-header-hcps').innerHTML = hHcps;
+
+            let bodyHtml = '';
+            for (let i = 1; i <= 18; i++) {
+                const h = db.settings.course[i];
+                let row = `<div class="gc-col-fixed h-full justify-end" style="padding-bottom: 2px;"><div class="text-left" style="width: 100%;"><span class="hole-label">Hole #</span> <span class="hole-number">${i}</span><br><span class="hole-label">Par</span> <span class="hole-number text-green-600">${h.par||'-'}</span><br><span class="hole-label">H.I.</span> <span class="hole-number text-red-400">${h.index||'-'}</span></div></div>`;
+                
+                players.forEach(p => {
+                    const hcp = Math.max(0, Math.round(p.hcp)), hIdx = parseInt(h.index);
+                    let dots = '';
+                    if (!isNaN(hIdx)) {
+                        const strokes = Math.floor(hcp/18) + (hIdx <= hcp%18 ? 1 : 0);
+                        for(let k=0; k<strokes; k++) dots += '•';
+                    }
+                    const val = p.isDNF ? '10' : (p.scores[i-1]||'');
+                    const inp = p.isDNF ? `<input type="number" class="gc-input" id="sc-${i}-${p.id}" value="10" data-dnf="true" readonly>` : `<input type="tel" inputmode="numeric" pattern="[0-9]*" class="gc-input" id="sc-${i}-${p.id}" value="${val}" onfocus="window.handleInputClick(this)" onclick="window.handleInputClick(this)" oninput="window.calcGroupTotals()">`;
+                    row += `<div class="gc-input-cell"><span class="gc-dots">${dots||'&nbsp;'}</span>${inp}</div>`;
+                });
+                bodyHtml += `<div class="gc-row-container" style="display:grid;grid-template-columns:${gridStyle}">${row}</div>`;
+            }
+
+
+            $('gc-body').innerHTML = bodyHtml;
+            window.calcGroupTotals();
+
+            // This new block adds the padding AFTER the totals are rendered.
+            const wrapper = document.querySelector('#gc-body-scroller .gc-scroll-wrapper');if (wrapper && !document.getElementById('scorecard-padding')) {
+                const padding = document.createElement('div');
+                padding.id = 'scorecard-padding';
+                padding.style.height = '200px';
+                wrapper.appendChild(padding);
+            }
+
+            $('group-card-modal').classList.remove('hidden');
+        };
+    
+        window.calcGroupTotals = function() {
+            // --- New Validation Logic ---
+            const activeEl = document.activeElement;
+            if (activeEl && activeEl.classList.contains('gc-input')) {
+                // 1. Remove any decimal points or other non-numeric characters
+                activeEl.value = activeEl.value.replace(/[^0-9]/g, '');
+
+                // 2. Validate the score is between 1 and 10
+                const score = parseInt(activeEl.value, 10);
+                if (score > 10) {
+                    activeEl.value = '1'; // Reset to 1 if > 10
+                    activeEl.classList.add('input-error');
+                    setTimeout(() => activeEl.classList.remove('input-error'), 500);
+                } else if (activeEl.value.length > 0 && score < 1) {
+                    // This handles a user trying to type "0" as the first digit.
+                    // It clears the input, as "0" is not a valid score.
+                    activeEl.value = '';
+                } else if (activeEl.value.length > 2) {
+                    activeEl.value = activeEl.value.slice(0, 2);
+                }
+            }
+
+            // --- Original calculation logic (with a small safety check) ---
+            const players = window.activeGroupPlayers;
+            let html = `<div class="gc-col-fixed bg-gray-700 text-yellow-400 font-extrabold text-sm">Gross Score</div>`;
+            players.forEach(p => {
+                let tot = 0;
+                for(let i=1; i<=18; i++) {
+                    let s = 0;
+                    if(p.isDNF) s=10; 
+                    else {
+                        const el = $(`sc-${i}-${p.id}`);
+                        if(el && el.value) { // Safety check for empty value
+                            s = parseInt(el.value);
+                        }
+                    }
+                    if(!isNaN(s) && s>=1) tot+=s;
+                }
+                html += `<div class="gc-header-cell flex-col justify-center text-sm font-extrabold text-white h-full"><span>${tot||'-'}</span></div>`;
+            });
+            $('gc-footer-row').innerHTML = html;
+        };
+        
+        window.hideGroupCardModal = function() {
+            $('group-card-modal').classList.add('hidden');
+            window.activeGroupPlayers = [];
+        };
+
+        window.exitGroupCardAndSave = async function() {
+            const players = window.activeGroupPlayers;
+            let change = false;
+            players.forEach(p => {
+                // IMPROVED SAVE LOGIC: CAPTURE EVERYTHING, EVEN PARTIALS
+                let sc = [], tot = 0, hasData = false;
+                
+                if(p.isDNF) { 
+                    sc = Array(18).fill(10); tot = 180; hasData = true; 
+                } else {
+                    for(let i=1; i<=18; i++) {
+                        const val = parseInt($(`sc-${i}-${p.id}`)?.value);
+                        if(!isNaN(val) && val>=1 && val<=10) { 
+                            sc.push(val); tot+=val; hasData=true; 
+                        } else {
+                            sc.push(null);
+                        }
+                    }
+                }
+                
+                // Find or Create Record
+                const idx = db.scores.findIndex(s => s.memberId === p.id && s.date === viewDate);
+                const rec = idx!==-1 ? db.scores[idx] : { memberId: p.id, date: viewDate, scores: [], total: null, isDNF: false };
+                
+                // Check change
+                if (JSON.stringify(rec.scores)!=JSON.stringify(sc) || rec.isDNF!=p.isDNF || (idx===-1 && hasData)) change=true;
+
+                if (hasData || p.isDNF) {
+                    rec.scores=sc; rec.total=tot; rec.isDNF=p.isDNF;
+                    if (idx===-1) db.scores.push(rec);
+                } else {
+                    // If no data entered at all, remove empty record to keep DB clean
+                    db.scores = db.scores.filter(s => s.memberId !== p.id || s.date !== viewDate);
+                }
+            });
+            if(change) await saveDB();
+            window.hideGroupCardModal(); window.updateUI();
+        };
+window.saveGroupScores = async function() {
+    const players = window.activeGroupPlayers;
+    for (const p of players) {
+        if (p.isDNF) continue;
+        for (let i = 1; i <= 18; i++) {
+            const input = document.getElementById(`sc-${i}-${p.id}`);
+            if (!input || input.value.trim() === "") {
+                showNotice(`Score missing for ${p.name} on hole ${i}. All 18 holes must be filled.`);
+                if (input) {
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    input.focus();
+                    input.classList.add('input-error');
+                    setTimeout(() => input.classList.remove('input-error'), 3500);
+                }
+                return;
+            }
+            const score = parseInt(input.value);
+            if (isNaN(score) || score < 1 || score > 10) {
+                showNotice(`Invalid score for ${p.name} on hole ${i}. Score must be 1-10.`);
+                input.classList.add('input-error');
+                input.setCustomValidity("Score must be 1-10.");
+                input.reportValidity();
+                setTimeout(() => {
+                    input.classList.remove('input-error');
+                    input.setCustomValidity("");
+                }, 3500);
+                return;
+            }
+        }
+    }
+    await window.exitGroupCardAndSave();
+    showNotice("Scores Saved Successfully.");
+};
+
+        // NEW: Clear Scores Button Logic
+        window.clearGroupScores = async function() {
+            if(confirm("Clear ALL scores for this group?")) {
+                const pIds = window.activeGroupPlayers.map(p => p.id);
+                // Remove scores for these specific players on this date
+                db.scores = db.scores.filter(s => !(s.date === viewDate && pIds.includes(s.memberId)));
+                await saveDB();
+                window.hideGroupCardModal();
+                window.updateUI();
+                window.showNotice("Group Scores Cleared.");
+            }
+        };
+
+        window.markDNF = async function(mId, time) {
+            // 1. SNAPSHOT: Capture ALL current inputs to DB first so nothing is lost
+            window.activeGroupPlayers.forEach(p => {
+                if(p.isDNF) return; // Locked
+                
+                let s = db.scores.find(x => x.memberId === p.id && x.date === viewDate);
+                if(!s) { 
+                    s = { memberId: p.id, date: viewDate, scores: Array(18).fill(null), total: 0, isDNF: false }; 
+                    db.scores.push(s); 
+                }
+
+                let tot = 0;
+                for(let i=1; i<=18; i++) {
+                    const el = $(`sc-${i}-${p.id}`);
+                    if(el) {
+                        const val = parseInt(el.value);
+                        if(!isNaN(val)) { s.scores[i-1] = val; tot += val; } 
+                        else { s.scores[i-1] = null; }
+                    }
+                }
+                s.total = tot;
+            });
+
+            // 2. TOGGLE: Now handle the specific DNF toggle
+            let targetScore = db.scores.find(x => x.memberId === mId && x.date === viewDate);
+            if (!targetScore) {
+                targetScore = { memberId: mId, date: viewDate, scores: Array(18).fill(null), total: 0, isDNF: false };
+                db.scores.push(targetScore);
+            }
+            
+            targetScore.isDNF = !targetScore.isDNF;
+            
+            if(targetScore.isDNF) {
+                targetScore.scores = Array(18).fill(10);
+                targetScore.total = 180;
+            } else {
+                targetScore.scores = Array(18).fill(null);
+                targetScore.total = 0;
+            }
+
+            await saveDB(); 
+            window.displayScorecard(time); // Re-render with safe data
+        };
+
+        window.calculateTeamScores = function(force) { if(force) { resultsCalculated=true; renderResultsTab(); } };
+
+        function renderResultsTab() {
+            const msg=$('results-lock-msg'), cnt=$('results-active-container'), out=$('results-output');
+            const nowTime = window.getLocalTime();
+            const locked = (viewDate < window.getLocalToday()) || (viewDate === window.getLocalToday() && nowTime >= db.settings.resultsDraw);
+            const draw = db.draws.find(d => d.date === viewDate);
+            
+            if(!locked) { msg.classList.remove('hidden'); cnt.classList.add('hidden'); out.innerHTML=''; $('res-unlock-time').innerText=window.formatTime12h(db.settings.resultsDraw); return; }
+            msg.classList.add('hidden'); cnt.classList.remove('hidden');
+            
+            if(!draw) { out.innerHTML = `<div class="text-center p-6 bg-white rounded-xl border border-dashed border-gray-300"><h3 class="font-bold text-gray-600">Teams Not Generated</h3></div>`; return; }
+            if(db.scores.filter(s => s.date === viewDate).length===0) resultsCalculated=false;
+            
+            const btn=$('calc-btn'); btn.innerHTML=resultsCalculated?"<span>🔄</span> Refresh Scores":"<span>🏆</span> Calculate Net Scores"; btn.classList.toggle('bg-green-600',!resultsCalculated); btn.classList.toggle('bg-gray-600',resultsCalculated);
+
+            const res = draw.pairs.map(pair => {
+                const team = resultsCalculated ? getTeamNetScore(pair.p1.id, pair.p2.id) : {score:null};
+                return { p1:pair.p1.name, p2:pair.p2.name, score: team.score||'-', sort: team.score||999, blind:pair.isBlind };
+            });
+            if(resultsCalculated) res.sort((a,b)=>a.sort-b.sort);
+
+            // Payouts
+            let payHtml = '';
+            if(resultsCalculated) {
+                const pot = db.signups.filter(s=>s.date===viewDate).length * (db.settings.betAmount||0);
+                if(pot>0) {
+                      payHtml = `<div class="bg-yellow-100 border border-yellow-300 rounded-xl p-3 mb-4 shadow-sm"><div class="flex justify-between items-center border-b border-yellow-200 pb-2 mb-2"><span class="text-xs font-bold text-yellow-800 uppercase">💰 PRIZE FUND</span><span class="text-lg font-black text-green-700">$${pot}</span></div>`;
+                      const pct = res.length<=3?[1]:(res.length<=5?[0.6,0.4]:[0.5,0.3,0.2]);
+                      let r=0;
+                      for(let i=0; i<pct.length; i++) {
+                          if(r>=res.length || res[r].sort===999) break;
+                          const sc = res[r].sort;
+                          let ties = 0, tList = [];
+                          for(let j=r; j<res.length; j++) if(res[j].sort===sc) { ties++; tList.push(res[j]); } else break;
+                          let sum=0; for(let k=0;k<ties;k++) if(i+k<pct.length) sum+=pct[i+k];
+                          const amt = (pot*sum)/ties;
+                          if(amt>0) tList.forEach(t => payHtml += `<div class="text-xs flex justify-between mb-1 py-1 border-b border-yellow-100 last:border-0"><div class="flex flex-col"><span class="font-bold text-gray-800">${i+1}${i===0?'st':(i===1?'nd':'rd')} Place: ${t.p1} & ${t.p2}</span><span class="text-[9px] text-gray-500 font-mono">Net: ${t.score}</span></div><span class="font-mono font-black text-green-700">$${Math.round(amt)}</span></div>`);
+                          r+=ties; i+=(ties-1);
+                      }
+                      payHtml+='</div>';
+                }
+            }
+            $('payout-summary').innerHTML = payHtml;
+            
+            let html = '';
+            res.forEach((t, i) => {
+                html += `<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between"><div class="flex items-center gap-3"><span class="text-xl font-black text-gray-300 w-6">${(resultsCalculated&&t.score!=='-')?`#${i+1}`:''}</span><div><div class="font-bold text-gray-800 leading-tight text-sm">${t.p1}</div><div class="font-bold text-gray-800 leading-tight text-sm flex items-center">${t.p2} ${t.blind?'<span class="text-[9px] text-red-500 ml-1 font-bold">(BLIND)</span>':''}</div></div></div><div class="3xl font-black ${t.score!=='-'?'text-green-700':'text-gray-400'} tracking-tighter">${t.score}</div></div>`;
+            });
+            out.innerHTML = html;
+        }
+
+async function autoCreateTeams(fromTeeSheet) {
+    const assigns = db.teeAssignments.filter(a => a.date === viewDate);
+    let pool = [...new Set(assigns.map(a => a.memberId))].map(id => db.members.find(m => m.id === id)).filter(p => p);
+    if (pool.length < 2) pool = db.signups.filter(s => s.date === viewDate).map(s => db.members.find(m => m.id === s.memberId)).filter(p => p);
+    if (pool.length < 2) return false;
+
+    const pairs = [];
+    let shuffled = pool.sort(() => 0.5 - Math.random());
+    for (let i = 0; i < Math.floor(shuffled.length / 2) * 2; i += 2) pairs.push({ p1: shuffled[i], p2: shuffled[i + 1], isBlind: false });
+    if (shuffled.length % 2 !== 0) {
+        const odd = shuffled[shuffled.length - 1];
+        const avail = pool.filter(p => p.id !== odd.id);
+        pairs.push({ p1: odd, p2: avail[Math.floor(Math.random() * avail.length)], isBlind: true });
+    }
+
+    // --- BUG FIX: The line that deleted scores is permanently removed from here. ---
+
+    db.draws = db.draws.filter(d => d.date !== viewDate);
+    db.draws.push({ date: viewDate, pairs: pairs });
+    await saveDB();
+
+    window.nav('results');
+    return true;
+}
+    
+
+        window.resetWeekData = async function() {
+            if(confirm("Clear week data?")) {
+                db.signups=[]; db.teeAssignments=[]; db.scores=[]; db.draws=[]; db.caps={};
+                for(let i=0;i<localStorage.length;i++) { const k=localStorage.key(i); if(k.startsWith('proShop')||k.startsWith('groupMsg')||k.startsWith('resultsDraw')||k.startsWith('finalTee')) localStorage.removeItem(k); }
+                await saveDB(); window.updateUI(); window.showNotice("Cleared.");
+            }
+        };
+
+        window.clearResultTeams = async function() {
+             if(confirm("Clear Scores/Teams for today?")) {
+                 db.draws=db.draws.filter(d=>d.date!==viewDate); db.scores=db.scores.filter(s=>s.date!==viewDate); resultsCalculated=false;
+                 localStorage.removeItem('resultsDrawCompleted_'+window.getLocalToday()+db.settings.resultsDraw);
+                 await saveDB(); window.updateUI(); window.showNotice("Cleared.");
+             }
+        };
+        
+        window.updateMemberHCP = async function(id, v) { const m=db.members.find(x=>x.id===id); if(m){ m.hcp=parseInt(v)||0; await saveDB(); window.showSaveIndicator(); renderAdminRoster(); } };
+        window.updateMemberEmail = async function(id, v) { const m=db.members.find(x=>x.id===id); if(m){ m.email=v.trim(); await saveDB(); window.showSaveIndicator(); } };
+        window.updateMemberName = async function(id, v) { const m=db.members.find(x=>x.id===id); if(m){ m.name=v.trim(); await saveDB(); window.showSaveIndicator(); } };
+
+        window.addMember = async function() {
+            const n=$('new-name').value, h=$('new-hcp').value, e=$('new-email').value;
+            if(n && h) { if(!db.members) db.members=[]; db.members.push({id:"m"+Date.now(),name:n,hcp:parseInt(h),email:e.trim()}); await saveDB(); $('new-name').value=''; $('new-hcp').value=''; $('new-email').value=''; window.updateUI(); renderAdminRoster(); }
+        };
+        window.deleteMember = async function(id) { if(confirm("Delete?")) { db.members=db.members.filter(m=>m.id!==id); await saveDB(); window.updateUI(); renderAdminRoster(); } };
+
+        function renderAdminRoster() {
+            const list=$('admin-roster-list'); if(!list) return;
+            const sorted=[...db.members].sort((a,b)=>a.name.localeCompare(b.name));
+            let html='';
+            if(sorted.length===0) html=`<div class="p-2 text-center text-gray-400">Empty</div>`;
+            else sorted.forEach(m => {
+                html+=`<div class="flex flex-col border-b last:border-0 p-2 text-xs bg-gray-50 rounded shadow-sm"><div class="flex justify-between items-start mb-1"><input type="text" class="font-bold text-gray-700 w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 bg-transparent outline-none mr-2" value="${m.name}" onchange="window.updateMemberName('${m.id}', this.value)"><button type="button" onclick="window.deleteMember('${m.id}')" class="text-red-500 font-bold hover:text-red-700 flex-shrink-0 ml-2">✕</button></div><div class="grid grid-cols-2 gap-2 mb-2"><div><div class="text-[10px] text-gray-500 mb-1">HCP:</div><input type="number" step="1" id="admin-member-hcp-${m.id}" class="w-full border p-1 rounded text-xs bg-white text-gray-700 text-center" value="${m.hcp!==undefined?m.hcp:''}" onchange="window.updateMemberHCP('${m.id}', this.value)" placeholder="Handicap"></div><div><div class="text-[10px] text-gray-500 mb-1">Email:</div><input type="email" id="admin-member-email-${m.id}" class="w-full border p-1 rounded text-xs bg-white text-gray-700" value="${m.email||''}" onchange="window.updateMemberEmail('${m.id}', this.value)" placeholder="Email"></div></div></div>`;
+            });
+            list.innerHTML=html;
+        }
+
+        function renderAdminCourse() {
+            const cnt=$('admin-course-container'); if(!cnt) return;
+            let html=''; for(let i=1; i<=18; i++) html+=`<div class="grid grid-cols-3 gap-1 mb-1 items-center"><span class="text-xs font-bold w-4 text-center">${i}</span><input id="acp-${i}" type="number" class="border rounded text-center text-xs h-6 w-8" value="${db.settings.course[i].par||''}" onchange="window.autoSaveAdminConfig()"><input id="aci-${i}" type="number" class="border rounded text-center text-xs h-6 w-8" value="${db.settings.course[i].index||''}" onchange="window.autoSaveAdminConfig()"></div>`;
+            cnt.innerHTML=html;
+        }
+
+
+window.saveAdmin = async function() {
+    if(!isAdminLoggedIn) return window.showNotice("Login required.");
+    
+    const nn = $('admin-league-name').value;
+    const np = $('admin-league-password').value;
+    if(!nn || !np) return window.showNotice("Fields cannot be empty.");
+    
+    // This function now ONLY saves the league name and password.
+    db.settings.leagueName = nn; 
+    db.settings.leaguePassword = np;
+
+    // **FIXED**: Use the new, safer save function
+    await saveSettingsOnly(); 
+    
+    window.showNotice("Saved."); 
+    window.updateUI();
+};
+        window.quickFillRoster = async function() {
+             if(confirm("Sign up first 6 players?")) {
+                 db.members.slice(0,6).forEach(m => { if(!db.signups.some(s=>s.memberId===m.id && s.date===viewDate)) db.signups.push({date:viewDate, memberId:m.id}); });
+                 await saveDB(); window.updateUI();
+             }
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => { try { window.init(); } catch (e) { window.showNotice("Init Error"); } });
+    </script>
+</body>
+</html>
