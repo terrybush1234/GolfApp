@@ -12,7 +12,6 @@
 # Build and temporary files
 build/
 dist/
-www/
 .tmp/
 .DS_Store*.log
 Thumbs.db
@@ -33,6 +32,9 @@ android/.idea/
 *.jks
 *.keystore
 keystore.properties
+
+# Ignore root local.properties file
+/local.properties
 
 # iOS files
 ios/build/

@@ -515,6 +515,56 @@ window.handleInputClick = function(el) {
     </div>
     
     <script type="module">
+// Paste this new function into your main <script type="module"> block
+function promptForNewLeaguePassword(leagueName) {
+    // This function returns a "Promise", which is a modern way to handle
+    // asynchronous actions like waiting for a user to type something.
+    return new Promise((resolve) => {
+        const modal = $('new-league-modal');
+        const leagueNameEl = $('modal-new-league-name');
+        const passwordInput = $('modal-new-league-password');
+        const createBtn = $('modal-create-btn');
+        const cancelBtn = $('modal-cancel-btn');
+
+        // Reset the input field from any previous use
+        passwordInput.value = '';
+
+        // Display the new league's name in the modal
+        leagueNameEl.innerText = `\"${leagueName}\"`;
+        
+        // Show the modal
+        modal.classList.remove('hidden');
+
+        // Define what happens when the "Create" button is clicked
+        const onCreate = () => {
+            if (passwordInput.value.trim()) {
+                cleanup();
+                resolve(passwordInput.value.trim()); // Send the password back
+            } else {
+                // Shake the input if it's empty
+                passwordInput.classList.add('input-error');
+                setTimeout(() => passwordInput.classList.remove('input-error'), 500);
+            }
+        };
+
+        // Define what happens when the "Cancel" button is clicked
+        const onCancel = () => {
+            cleanup();
+            resolve(null); // Send 'null' back to indicate cancellation
+        };
+
+        // A helper function to remove event listeners and hide the modal
+        const cleanup = () => {
+            createBtn.removeEventListener('click', onCreate);
+            cancelBtn.removeEventListener('click', onCancel);
+            modal.classList.add('hidden');
+        };
+
+        // Attach the listeners to the buttons
+        createBtn.addEventListener('click', onCreate);
+        cancelBtn.addEventListener('click', onCancel);
+    });
+}
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, onSnapshot, initializeFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
@@ -1075,6 +1125,7 @@ function updateLiveClock() {
     $('live-clock').innerText = window.formatTime12h(now.toTimeString().substring(0, 5));
 }
 
+// DELETE your old loginLoop function and REPLACE it with this one.
 async function loginLoop(initialLoad = true) {
     if (initialLoad) {
         const storedId = localStorage.getItem('lastLeagueId');
@@ -1091,43 +1142,57 @@ async function loginLoop(initialLoad = true) {
 
     let leagueNameInput = "";
     while (true) {
-        const promptVal = prompt("League Name:", leagueNameInput);
+        // The simple browser prompt for the league name is still okay.
+        const promptVal = prompt("Enter League Name:", leagueNameInput);
 
-        if (promptVal === null) return false; // User cancelled
-        if (!promptVal) continue; // User entered empty string
+        if (promptVal === null) return false; // User cancelled the whole process
+        if (!promptVal) continue; // User entered an empty string, so prompt again
 
         leagueNameInput = promptVal;
         const enteredId = generateLeagueId(leagueNameInput);
         if (!enteredId) continue;
 
+        // Check if a league with this ID already exists
         if (!(await window.loadDB(enteredId))) {
-            // --- NEW LEAGUE creation flow ---
-            const newPass = prompt(`Create a password for your new league: \"${leagueNameInput}\"`);
-            if (newPass === null) return false; // User cancelled
-            if (!newPass.trim()) continue;
+            // --- NEW LEAGUE CREATION ---
+            // If the league does NOT exist, use our custom modal to get the password.
+            const newPass = await promptForNewLeaguePassword(leagueNameInput);
 
+            if (newPass === null) {
+                // If the user cancelled the password modal, we'll restart the loop
+                // to let them enter a different league name.
+                continue;
+            }
+
+            // We are creating a new league, so we start with default settings.
+            // The loadDB function already reset 'db' to the default template.
             db.settings.leagueName = leagueNameInput;
-            db.settings.leaguePassword = newPass;
-            db.members = []; // Start with a fresh roster
+            db.settings.leaguePassword = newPass; // *** THIS IS THE FIX ***
+            db.members = []; // A new league starts with an empty roster.
+
+            // Save the new league to the database.
             await saveDB();
 
+            // Store this new league as the last one used and show a success message.
             localStorage.setItem('lastLeagueId', enteredId);
-            window.showNotice(`League \"${leagueNameInput}\" Created! Register to become admin.`);
+            window.showNotice(`League "${leagueNameInput}" Created! Register to become admin.`);
             setupLoadedUI();
             return true; // Success
 
         } else {
-            // --- EXISTING LEAGUE login flow ---
-            const pass = prompt(`Enter Password for league: \"${db.settings.leagueName}\"`);
-            if (pass === null) return false; // User cancelled
+            // --- EXISTING LEAGUE LOGIN ---
+            // If the league DOES exist, use the simple browser prompt for the password.
+            const pass = prompt(`Enter Password for league: "${db.settings.leagueName}"`);
+            if (pass === null) continue; // User cancelled, so re-prompt for league name
 
+            // Check the entered password against the one in the database.
             if (pass === db.settings.leaguePassword || pass === "1111") {
                 localStorage.setItem('lastLeagueId', enteredId);
                 setupLoadedUI();
                 return true; // Success
             } else {
                 window.showNotice("Incorrect Password.");
-                // Loop will continue, re-prompting for the league name.
+                // Let the loop continue to re-prompt for the league name.
             }
         }
     }
@@ -2103,5 +2168,30 @@ window.saveAdmin = async function() {
       }
     </script>
     <!-- ===================================================================== -->
+<!-- ===================================================================== -->
+<!--    NEW, PRONOUNCED MODAL FOR NEW LEAGUE PASSWORD CREATION           -->
+<!-- ===================================================================== -->
+<div id="new-league-modal" class="fixed inset-0 bg-black bg-opacity-80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col p-6 animate-[fadeIn_0.2s_ease-out]">
+        <h2 class="text-2xl font-black text-green-800 mb-2 text-center">Create New League</h2>
+        
+        <p class="text-sm text-gray-600 mb-4 text-center">
+            You are creating a brand new league named:
+            <strong id="modal-new-league-name" class="block text-lg text-indigo-700 font-bold mt-1"></strong>
+        </p>
+        
+        <div class="mb-4">
+            <label for="modal-new-league-password" class="block text-sm font-bold text-gray-700 mb-1">Create a Password</label>
+            <p class="text-[10px] text-gray-500 mb-2">This password will be required for other members to join this new league.</p>
+            <input type="text" id="modal-new-league-password" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-lg font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+        </div>
+        
+        <button id="modal-create-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg transition-transform active:scale-95">Create League & Set Password</button>
+        <button id="modal-cancel-btn" class="w-full mt-2 text-sm text-gray-500 hover:text-gray-700 py-2">Cancel</button>
+    </div>
+</div>
+<!-- ===================================================================== -->
+
+</body>
 </body>
 </html>

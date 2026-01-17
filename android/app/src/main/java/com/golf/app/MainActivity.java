@@ -1,5 +1,8 @@
 package com.Golf.App;
 
+// This is the required import for the auto-generated BuildConfig file.
+import com.Golf.App.BuildConfig;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,44 +13,50 @@ import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
 
-    boolean isReady = false;
+    private boolean isSplashScreenReady = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Handle the splash screen transition.
-        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-
+        SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
 
-        // Keep the splash screen visible until the 2-second delay is over.
-        final View content = findViewById(android.R.id.content);
-        content.getViewTreeObserver().addOnPreDrawListener(
-            new ViewTreeObserver.OnPreDrawListener() {
-                @Override
-                public boolean onPreDraw() {
-                    // Check if the delay is complete.
-                    if (isReady) {
-                        // The content is ready, remove the listener and draw.
-                        content.getViewTreeObserver().removeOnPreDrawListener(this);
-                        return true;
-                    } else {
-                        // The content is not ready, wait.
-                        return false;
-                    }
-                }
-            });
+        // Use named classes for all listeners and runnables to avoid nest host errors.
+        new Handler(Looper.getMainLooper()).postDelayed(new SetSplashScreenReady(), 2000);
 
-        // Use a handler to set the isReady flag after 2 seconds (2000 milliseconds).
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            isReady = true;
-        }, 2000);
+        final View content = findViewById(android.R.id.content);
+        content.getViewTreeObserver().addOnPreDrawListener(new KeepSplashScreenOnScreen(content));
     }
 
     @Override
     public void onStart() {
         super.onStart();
-
-        // Pass the key to the webview
         getBridge().getWebView().evaluateJavascript("window.setGoogleMapsKey('" + BuildConfig.MAPS_API_KEY + "')", null);
+    }
+
+    // Named Runnable to replace the lambda for the Handler
+    private class SetSplashScreenReady implements Runnable {
+        @Override
+        public void run() {
+            isSplashScreenReady = true;
+        }
+    }
+
+    // Named listener for the splash screen
+    private class KeepSplashScreenOnScreen implements ViewTreeObserver.OnPreDrawListener {
+        private final View contentView;
+
+        public KeepSplashScreenOnScreen(View contentView) {
+            this.contentView = contentView;
+        }
+
+        @Override
+        public boolean onPreDraw() {
+            if (isSplashScreenReady) {
+                contentView.getViewTreeObserver().removeOnPreDrawListener(this);
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 }
