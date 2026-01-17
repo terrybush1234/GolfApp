@@ -1,6 +1,5 @@
 package com.Golf.App;
 
-// This is the required import for the auto-generated BuildConfig file.
 import com.Golf.App.BuildConfig;
 
 import android.os.Bundle;
@@ -20,7 +19,6 @@ public class MainActivity extends BridgeActivity {
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
 
-        // Use named classes for all listeners and runnables to avoid nest host errors.
         new Handler(Looper.getMainLooper()).postDelayed(new SetSplashScreenReady(), 2000);
 
         final View content = findViewById(android.R.id.content);
@@ -30,10 +28,12 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onStart() {
         super.onStart();
-        getBridge().getWebView().evaluateJavascript("window.setGoogleMapsKey('" + BuildConfig.MAPS_API_KEY + "')", null);
+        // Securely pass both keys to the webview
+        String script = "window.setGoogleMapsKey('" + BuildConfig.MAPS_API_KEY + "');" +
+                      "window.setFirebaseApiKey('" + BuildConfig.FIREBASE_API_KEY + "');";
+        getBridge().getWebView().evaluateJavascript(script, null);
     }
 
-    // Named Runnable to replace the lambda for the Handler
     private class SetSplashScreenReady implements Runnable {
         @Override
         public void run() {
@@ -41,7 +41,6 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    // Named listener for the splash screen
     private class KeepSplashScreenOnScreen implements ViewTreeObserver.OnPreDrawListener {
         private final View contentView;
 
