@@ -10,9 +10,7 @@ if (localPropertiesFile.exists()) {
     localPropertiesFile.withReader('UTF-8') { reader ->
         localProperties.load(reader)
     }
-    println(">>>>>> [DEBUG] Key from local.properties: '" + localProperties.getProperty('MAPS_API_KEY', 'NOT_FOUND') + "'")
 } else {
-    println(">>>>>> [DEBUG] local.properties file not found!")
     localProperties.setProperty('MAPS_API_KEY', '""')
 }
 
@@ -42,8 +40,8 @@ android {
         applicationId "com.Golf.App"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 31
-        versionName "2.3"
+        versionCode 32
+        versionName "2.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "MAPS_API_KEY", localProperties.getProperty('MAPS_API_KEY', '""')
         aaptOptions {

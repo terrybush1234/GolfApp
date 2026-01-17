@@ -526,7 +526,7 @@ window.handleInputClick = function(el) {
             projectId: "villa-app-97262",
             storageBucket: "villa-app-97262.firebasestorage.app",
             messagingSenderId: "1084473079288",
-            appId: "1:1084473079288:web:e65a60dbe187d4b5cd120d",
+            appId: "AIzaSyDWODBXDLrELnsLywWWELtohU8G1Ef1ToQ",
             measurementId: "G-J543F1DVYJ"
         };
 
@@ -2060,39 +2060,7 @@ window.saveAdmin = async function() {
              }
         };
 
-        document.addEventListener('DOMContentLoaded', async () => { try { window.init(); } catch (e) { window.showNotice("Init Error"); } });
-    <!-- ===================================================================== -->
-    <!--    FINAL, SECURE SCRIPT FOR LOADING GOOGLE MAPS                   -->
-    <!-- ===================================================================== -->
-    <script>
-        // This function will be called by the native Android app (from MainActivity.java)
-        // It receives the key securely.
-        window.setGoogleMapsKey = (apiKey) => {
-            if (!apiKey) {
-                console.error("Did not receive a valid API key from the native app.");
-                return;
-            }
-            loadGoogleMapsAPI(apiKey);
-        };
-
-        // This function loads the Google Maps script, but only after it has a key.
-        function loadGoogleMapsAPI(apiKey) {
-            // This function will be called by Google's script once it's loaded.
-            window.initMap = () => {
-                // --- YOUR MAP INITIALIZATION CODE GOES HERE ---
-                // Move your code like `new google.maps.Map(...)` inside this function.
-                console.log("Google Maps API has loaded and initMap has been called.");
-            };
-
-            // Create and inject the script tag with the secure key.
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
-            script.async = true;
-            document.head.appendChild(script);
-        }
-    </script>
-    <!-- ===================================================================== -->
-    
+      </script>
 
 </body>
 </body>
